@@ -1,0 +1,44 @@
+# Galactic Overhaul - "Investment Portfolio" policy (the stock market).
+# Off / Payout / Reinvest. When active, surplus trade is auto-invested into
+# Galactic Shares (price tracks the galactic market index); dividends are either
+# paid out as trade or reinvested (DRIP). Cash out via the Liquidate decision.
+go_investment = {
+	potential = {
+		is_country_type = default
+	}
+
+	allow = {
+		always = yes
+	}
+
+	option = {
+		name = "go_inv_off"
+		icon = "GFX_diplomatic_stance_withdrawn"
+		ai_weight = {
+			weight = 100
+		}
+	}
+
+	option = {
+		name = "go_inv_payout"
+		icon = "GFX_diplomatic_stance_mercantile"
+		policy_flags = {
+			go_investment_active
+		}
+		ai_weight = {
+			weight = 0
+		}
+	}
+
+	option = {
+		name = "go_inv_drip"
+		icon = "GFX_diplomatic_stance_mercantile"
+		policy_flags = {
+			go_investment_active
+			go_investment_drip
+		}
+		ai_weight = {
+			weight = 0
+		}
+	}
+}

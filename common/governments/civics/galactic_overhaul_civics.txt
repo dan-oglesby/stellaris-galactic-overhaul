@@ -1,0 +1,43 @@
+# Galactic Overhaul - Megacorp-only civics that instantly found a galaxy-wide
+# institution. The founding logic lives in events/galactic_overhaul_civic_events.txt
+# (fired from on_game_start_country + on_monthly_pulse_country, so it works whether
+# the civic is chosen at game start or adopted later by reform).
+
+# Founds the GALACTIC BANK for the whole galaxy (sets the chartered flag + names a
+# host). Every empire then gets access to the Galactic Banking policy.
+civic_go_banking_charter = {
+	description = "civic_go_banking_charter_effects"
+
+	potential = {
+		authority = { value = auth_corporate }
+	}
+
+	possible = {}
+
+	modifier = {
+		country_resource_max_trade_add = 10000
+	}
+
+	ai_weight = {
+		weight = 5
+	}
+}
+
+# Founds the GALACTIC MARKET for the whole galaxy (chooses a host + enables it).
+civic_go_market_authority = {
+	description = "civic_go_market_authority_effects"
+
+	potential = {
+		authority = { value = auth_corporate }
+	}
+
+	possible = {}
+
+	modifier = {
+		country_resource_max_trade_add = 5000
+	}
+
+	ai_weight = {
+		weight = 5
+	}
+}

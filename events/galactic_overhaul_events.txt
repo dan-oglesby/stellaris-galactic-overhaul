@@ -1,0 +1,400 @@
+namespace = galactic_overhaul
+
+# ============================================================================
+# galactic_overhaul.1 - Monthly interest payment on stored energy credits.
+# Fired from on_monthly_pulse_country, only for empires with the Galactic Banking
+# policy enabled (galactic_overhaul_active flag).
+#
+# Dynamic, SELF-CALIBRATING rate:
+#   rate = base_tier_rate [+ host bonus]
+#          * (1 + activity)          ; activity = unusual price movement (see below)
+#          * (1 - savings_dampening)  ; reserves taper the rate
+#   interest = current energy reserves * rate   (capped at storage max)
+#
+# Activity is derived from the galactic mineral price's own history:
+#   - go_price_mean : exponentially-weighted recent mean of the price
+#   - go_price_mad  : mean absolute deviation (typical month-to-month wobble)
+#   - z = |price - mean| / mad  -> how unusual is this month's price (either direction)
+#   - activity ramps from @go_z_min to (@go_z_min + @go_z_range) MADs, up to @go_activity_max
+# The mean/MAD are then updated for next month. Constants live in
+# common/scripted_variables/galactic_overhaul_variables.txt.
+#
+# Debug: enable the "Toggle Galactic Bank Debug Log" decision (sets global flag
+# galactic_overhaul_debug) to write a monthly line to logs/game.log.
+# ============================================================================
+country_event = {
+	id = galactic_overhaul.1
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		has_policy_flag = galactic_overhaul_active
+		resource_stockpile_compare = { resource = go_banked_credits value > 0 }
+	}
+
+	immediate = {
+		# ---- 1. Base rate from policy tier (+ host bonus) ----
+		if = {
+			limit = { has_policy_flag = galactic_overhaul_tier_conservative }
+			set_variable = { which = go_rate value = @go_rate_conservative }
+		}
+		else_if = {
+			limit = { has_policy_flag = galactic_overhaul_tier_aggressive }
+			set_variable = { which = go_rate value = @go_rate_aggressive }
+		}
+		else = {
+			set_variable = { which = go_rate value = @go_rate_standard }
+		}
+		if = {
+			limit = { has_country_flag = galactic_overhaul_host }
+			change_variable = { which = go_rate value = @go_rate_host_bonus }
+		}
+
+		# ---- 2. Read the fee-free galactic market price of 100 minerals ----
+		# trade_type = not_set -> reference price WITHOUT market fees: galaxy-uniform
+		# (fees are per-empire) and a cleaner activity signal.
+		# market_resource_price signature verified against script_docs.
+		export_trigger_value_to_variable = {
+			trigger = market_resource_price
+			parameters = {
+				resource = minerals
+				amount = 100
+				trade_type = not_set
+			}
+			variable = go_price
+		}
+		set_variable = { which = go_last_mkt value = go_price }	# persist raw reading
+
+		# ---- 3. Initialise trackers on first run (no activity that month) ----
+		if = {
+			limit = { NOT = { is_variable_set = go_price_mean } }
+			set_variable = { which = go_price_mean value = go_price }
+			set_variable = { which = go_price_mad value = 0 }
+		}
+
+		# ---- 4. Deviation from recent mean (signed) and its magnitude ----
+		set_variable = { which = go_dev value = go_price }
+		subtract_variable = { which = go_dev value = go_price_mean }
+		set_variable = { which = go_absdev value = go_dev }
+		if = {
+			limit = { check_variable = { which = go_absdev value < 0 } }
+			multiply_variable = { which = go_absdev value = -1 }
+		}
+
+		# ---- 5. Significance -> activity factor [0 .. @go_activity_max] ----
+		if = {
+			limit = { check_variable = { which = go_price_mad value > @go_mad_epsilon } }
+			set_variable = { which = go_activity value = go_absdev }
+			divide_variable = { which = go_activity value = go_price_mad }	# z, in MAD units
+			subtract_variable = { which = go_activity value = @go_z_min }	# past the noise floor
+			divide_variable = { which = go_activity value = @go_z_range }	# normalise the ramp
+			if = {
+				limit = { check_variable = { which = go_activity value < 0 } }
+				set_variable = { which = go_activity value = 0 }
+			}
+			if = {
+				limit = { check_variable = { which = go_activity value > 1 } }
+				set_variable = { which = go_activity value = 1 }
+			}
+			multiply_variable = { which = go_activity value = @go_activity_max }
+		}
+		else = {
+			set_variable = { which = go_activity value = 0 }
+		}
+		set_variable = { which = go_last_activity value = go_activity }	# persist raw factor for inspection
+		# rate *= (1 + activity)
+		change_variable = { which = go_activity value = 1 }
+		multiply_variable = { which = go_rate value = go_activity }
+
+		# ---- 6. Savings dampening [0 .. @go_savings_maxdamp] ----
+		export_resource_stockpile_to_variable = {
+			resource = go_banked_credits
+			variable = go_reserves
+		}
+		set_variable = { which = go_savings value = go_reserves }
+		divide_variable = { which = go_savings value = @go_savings_scale }
+		if = {
+			limit = { check_variable = { which = go_savings value > @go_savings_maxdamp } }
+			set_variable = { which = go_savings value = @go_savings_maxdamp }
+		}
+		# rate *= (1 - dampening)
+		multiply_variable = { which = go_savings value = -1 }
+		change_variable = { which = go_savings value = 1 }
+		multiply_variable = { which = go_rate value = go_savings }
+
+		set_variable = { which = go_last_rate value = go_rate }	# persist effective rate
+
+		# ---- 7. Pay interest = reserves * effective rate ----
+		multiply_variable = { which = go_reserves value = go_rate }
+		add_resource = {
+			go_banked_credits = 1
+			mult = go_reserves
+		}
+
+		# ---- 7b. Risk of loss: tiers above Conservative carry downside ----
+		# A monthly chance of a market loss that shaves a fraction off the banked
+		# balance. Conservative is safe; Standard ~8%/mo, Aggressive ~15%/mo.
+		if = {
+			limit = { NOT = { has_policy_flag = galactic_overhaul_tier_conservative } }
+			if = {
+				limit = { has_policy_flag = galactic_overhaul_tier_aggressive }
+				random_list = {
+					85 = { }
+					15 = {
+						export_resource_stockpile_to_variable = { resource = go_banked_credits variable = go_bank_loss }
+						multiply_variable = { which = go_bank_loss value = @go_bank_loss_agg }
+						add_resource = { go_banked_credits = -1 mult = go_bank_loss }
+						if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_BANK: [This.GetName] LOSS (aggressive) -[This.go_bank_loss]" }
+					}
+				}
+			}
+			else = {
+				random_list = {
+					92 = { }
+					8 = {
+						export_resource_stockpile_to_variable = { resource = go_banked_credits variable = go_bank_loss }
+						multiply_variable = { which = go_bank_loss value = @go_bank_loss_std }
+						add_resource = { go_banked_credits = -1 mult = go_bank_loss }
+						if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_BANK: [This.GetName] LOSS (standard) -[This.go_bank_loss]" }
+					}
+				}
+			}
+			clear_variable = go_bank_loss
+		}
+
+		# ---- 8. Update recent-mean and MAD trackers (EMA) for next month ----
+		# mean += alpha * (price - mean)
+		set_variable = { which = go_tmp value = go_dev }
+		multiply_variable = { which = go_tmp value = @go_alpha }
+		change_variable = { which = go_price_mean value = go_tmp }
+		# mad += alpha * (|dev| - mad)
+		set_variable = { which = go_tmp value = go_absdev }
+		subtract_variable = { which = go_tmp value = go_price_mad }
+		multiply_variable = { which = go_tmp value = @go_alpha }
+		change_variable = { which = go_price_mad value = go_tmp }
+
+		# ---- 9. Optional debug log (toggle via the debug decision) ----
+		if = {
+			limit = { go_debug_on = yes }
+			log = "GALACTIC_OVERHAUL [This.GetName]: price=[This.go_price] mean=[This.go_price_mean] mad=[This.go_price_mad] activity=[This.go_last_activity] rate=[This.go_last_rate] interest=[This.go_reserves]"
+		}
+
+		# ---- 10. Tidy working variables (keep go_price_mean/mad + go_last_*) ----
+		clear_variable = go_rate
+		clear_variable = go_activity
+		clear_variable = go_dev
+		clear_variable = go_absdev
+		clear_variable = go_savings
+		clear_variable = go_reserves
+		clear_variable = go_tmp
+		clear_variable = go_price
+	}
+}
+
+# ============================================================================
+# galactic_overhaul.20 - Yearly re-selection of the Galactic Bank host.
+# Fired from on_yearly_pulse_country with a once-per-year global latch so the
+# re-selection runs a single time per year. Keeps the host dynamic.
+# ============================================================================
+country_event = {
+	id = galactic_overhaul.20
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		has_global_flag = galactic_overhaul_chartered
+		NOT = { has_global_flag = galactic_overhaul_host_selected_this_year }
+	}
+
+	immediate = {
+		set_timed_global_flag = {
+			flag = galactic_overhaul_host_selected_this_year
+			days = 320
+		}
+		galactic_overhaul_select_host = yes
+		if = {
+			limit = { go_debug_on = yes }
+			log = "GALACTIC_OVERHAUL: yearly host re-selection"
+		}
+	}
+}
+
+# ============================================================================
+# galactic_overhaul.2 - Monthly Treasury Automation (auto buy/sell).
+# Fired from on_monthly_pulse_country for empires whose Treasury Automation policy
+# is set to Automated. Runs the price-impact trading engine for each managed
+# resource. Tune via common/scripted_variables/galactic_overhaul_trading_variables.txt.
+# ============================================================================
+country_event = {
+	id = galactic_overhaul.2
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		has_policy_flag = treasury_automation_active
+	}
+
+	immediate = {
+		# Run the trade engine per resource, then log the result HERE (event scope, where
+		# [This.x] macros resolve - they do not render inside the scripted effect).
+		# act: 0 = no action, 1 = sold surplus, 2 = bought to cover a deficit.
+		galactic_overhaul_trade_resource = { RESOURCE = energy }
+		if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_TRADE: [This.GetName] energy act=[This.go_t_action] amt=[This.go_t_amt] stock=[This.go_t_stock] cap=[This.go_t_max] inc=[This.go_t_income] price=[This.go_t_price]" }
+		galactic_overhaul_trade_resource = { RESOURCE = minerals }
+		if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_TRADE: [This.GetName] minerals act=[This.go_t_action] amt=[This.go_t_amt] stock=[This.go_t_stock] cap=[This.go_t_max] inc=[This.go_t_income] price=[This.go_t_price]" }
+		galactic_overhaul_trade_resource = { RESOURCE = food }
+		if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_TRADE: [This.GetName] food act=[This.go_t_action] amt=[This.go_t_amt] stock=[This.go_t_stock] cap=[This.go_t_max] inc=[This.go_t_income] price=[This.go_t_price]" }
+		galactic_overhaul_trade_resource = { RESOURCE = alloys }
+		if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_TRADE: [This.GetName] alloys act=[This.go_t_action] amt=[This.go_t_amt] stock=[This.go_t_stock] cap=[This.go_t_max] inc=[This.go_t_income] price=[This.go_t_price]" }
+		galactic_overhaul_trade_resource = { RESOURCE = consumer_goods }
+		if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_TRADE: [This.GetName] consumer_goods act=[This.go_t_action] amt=[This.go_t_amt] stock=[This.go_t_stock] cap=[This.go_t_max] inc=[This.go_t_income] price=[This.go_t_price]" }
+		# Opportunistic desk: charge a monthly management fee (active-trading costs).
+		if = {
+			limit = { has_policy_flag = go_trade_opportunistic }
+			add_resource = { trade = @go_opp_fee_neg }
+			if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_TRADE: [This.GetName] opportunistic desk fee charged" }
+		}
+		clear_variable = go_t_action
+		clear_variable = go_t_amt
+		clear_variable = go_t_stock
+		clear_variable = go_t_max
+		clear_variable = go_t_income
+		clear_variable = go_t_price
+	}
+}
+
+# ============================================================================
+# galactic_overhaul.3 - Monthly automated taxation of private commerce (trade value).
+# Fired from on_monthly_pulse_country for empires with a Taxation Doctrine stance.
+# Drifts go_tax_rate toward the stance's target, then collects rate * trade income
+# as energy. go_tax_rate persists (it is the drifting state). Tune in
+# common/scripted_variables/galactic_overhaul_tax_variables.txt.
+# ============================================================================
+country_event = {
+	id = galactic_overhaul.3
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		has_policy_flag = go_tax_active
+	}
+
+	immediate = {
+		# init the persistent rate on first run
+		if = {
+			limit = { NOT = { is_variable_set = go_tax_rate } }
+			set_variable = { which = go_tax_rate value = @go_tax_balanced }
+		}
+
+		# target rate for the active stance
+		if = {
+			limit = { has_policy_flag = go_tax_mode_low }
+			set_variable = { which = go_tax_target value = @go_tax_min }
+		}
+		else_if = {
+			limit = { has_policy_flag = go_tax_mode_high }
+			set_variable = { which = go_tax_target value = @go_tax_max }
+		}
+		else = {
+			set_variable = { which = go_tax_target value = @go_tax_balanced }
+		}
+
+		# drift the rate toward the target by one step (clamped so it can't overshoot)
+		if = {
+			limit = { check_variable = { which = go_tax_rate value < go_tax_target } }
+			change_variable = { which = go_tax_rate value = @go_tax_step }
+			if = {
+				limit = { check_variable = { which = go_tax_rate value > go_tax_target } }
+				set_variable = { which = go_tax_rate value = go_tax_target }
+			}
+		}
+		else_if = {
+			limit = { check_variable = { which = go_tax_rate value > go_tax_target } }
+			subtract_variable = { which = go_tax_rate value = @go_tax_step }
+			if = {
+				limit = { check_variable = { which = go_tax_rate value < go_tax_target } }
+				set_variable = { which = go_tax_rate value = go_tax_target }
+			}
+		}
+
+		# revenue = current trade income * tax rate -> energy
+		export_resource_income_to_variable = { resource = trade variable = go_tax_base }
+		set_variable = { which = go_tax_rev value = go_tax_base }
+		multiply_variable = { which = go_tax_rev value = go_tax_rate }
+		if = {
+			limit = { check_variable = { which = go_tax_rev value > 0 } }
+			add_resource = { trade = 1 mult = go_tax_rev }
+		}
+
+		if = {
+			limit = { go_debug_on = yes }
+			log = "GALACTIC_OVERHAUL_TAX [This.GetName]: rate=[This.go_tax_rate] target=[This.go_tax_target] trade_base=[This.go_tax_base] revenue=[This.go_tax_rev]"
+		}
+
+		clear_variable = go_tax_target
+		clear_variable = go_tax_base
+		clear_variable = go_tax_rev
+	}
+}
+
+# ============================================================================
+# galactic_overhaul.4 - Bank deposit/withdraw automation (monthly).
+# When Galactic Banking is active, auto-manage the TRADE stockpile against the
+# bank: deposit the surplus into Banked Credits when trade nears its cap, and
+# withdraw from the bank to refill trade when it runs low. Interest (.1) then
+# accrues on the Banked Credits balance. Bands tunable in
+# common/scripted_variables/galactic_overhaul_bank_variables.txt.
+# ============================================================================
+country_event = {
+	id = galactic_overhaul.4
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		has_policy_flag = galactic_overhaul_active
+	}
+
+	immediate = {
+		export_resource_stockpile_to_variable = { resource = trade variable = go_bk_trade }
+		export_resource_maximum_to_variable   = { resource = trade variable = go_bk_max }
+		set_variable = { which = go_bk_high value = go_bk_max }
+		multiply_variable = { which = go_bk_high value = @go_bank_deposit_frac }
+
+		if = {
+			limit = { check_variable = { which = go_bk_trade value >= go_bk_high } }
+			set_variable = { which = go_bk_keep value = go_bk_max }
+			multiply_variable = { which = go_bk_keep value = @go_bank_target_frac }
+			set_variable = { which = go_bk_amt value = go_bk_trade }
+			subtract_variable = { which = go_bk_amt value = go_bk_keep }
+			if = {
+				limit = { check_variable = { which = go_bk_amt value > 0 } }
+				add_resource = { trade = -1 mult = go_bk_amt }
+				add_resource = { go_banked_credits = 1 mult = go_bk_amt }
+				if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_BANK: [This.GetName] DEPOSIT [This.go_bk_amt] (trade=[This.go_bk_trade] cap=[This.go_bk_max])" }
+			}
+		}
+		else_if = {
+			limit = { check_variable = { which = go_bk_trade value <= @go_bank_withdraw_floor } }
+			export_resource_stockpile_to_variable = { resource = go_banked_credits variable = go_bk_bal }
+			set_variable = { which = go_bk_amt value = @go_bank_refill_target }
+			subtract_variable = { which = go_bk_amt value = go_bk_trade }
+			if = {
+				limit = { check_variable = { which = go_bk_amt value > go_bk_bal } }
+				set_variable = { which = go_bk_amt value = go_bk_bal }
+			}
+			if = {
+				limit = { check_variable = { which = go_bk_amt value > 0 } }
+				add_resource = { go_banked_credits = -1 mult = go_bk_amt }
+				add_resource = { trade = 1 mult = go_bk_amt }
+				if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_BANK: [This.GetName] WITHDRAW [This.go_bk_amt] (trade=[This.go_bk_trade] bal=[This.go_bk_bal])" }
+			}
+		}
+
+		clear_variable = go_bk_trade
+		clear_variable = go_bk_max
+		clear_variable = go_bk_high
+		clear_variable = go_bk_keep
+		clear_variable = go_bk_amt
+		clear_variable = go_bk_bal
+	}
+}

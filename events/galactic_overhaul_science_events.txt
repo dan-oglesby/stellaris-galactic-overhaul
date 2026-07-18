@@ -1,0 +1,55 @@
+namespace = galactic_overhaul_science
+
+# ============================================================================
+# galactic_overhaul_science.1 - Monthly science-ship crewing (on_monthly_pulse_country).
+# For each owned science ship with no scientist, recruit + assign one (up to the
+# leader ceiling). Mirrors Ultimate Automation's scientist-fill: a leaderless
+# science ship = any_owned_fleet { is_ship_class = shipclass_science_ship,
+# NOT exists = leader, is_disabled = no }. Debug tag: GALACTIC_OVERHAUL_SCIENCE.
+# ============================================================================
+country_event = {
+	id = galactic_overhaul_science.1
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		has_policy_flag = go_science_active
+		any_owned_fleet = {
+			is_ship_class = shipclass_science_ship
+			NOT = { exists = leader }
+			is_disabled = no
+		}
+	}
+
+	immediate = {
+		every_owned_fleet = {
+			limit = {
+				is_ship_class = shipclass_science_ship
+				NOT = { exists = leader }
+				is_disabled = no
+			}
+			if = {
+				limit = { owner = { num_owned_leaders < @go_sci_leader_cap } }
+				owner = {
+					create_leader = {
+						class = scientist
+						species = owner_main_species
+						skill = @go_sci_skill
+						name = random
+					}
+				}
+				assign_leader = last_created_leader
+				if = {
+					limit = { go_debug_on = yes }
+					log = "GALACTIC_OVERHAUL_SCIENCE: crewed science ship [This.GetName] with a new scientist"
+				}
+			}
+			else = {
+				if = {
+					limit = { go_debug_on = yes }
+					log = "GALACTIC_OVERHAUL_SCIENCE: [This.GetName] needs a scientist but owner is at the leader ceiling"
+				}
+			}
+		}
+	}
+}

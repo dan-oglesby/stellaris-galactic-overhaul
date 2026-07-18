@@ -1,0 +1,51 @@
+# "Treasury Automation" policy - opt-in auto buy/sell desk.
+# When set to Automated, galactic_overhaul.2 runs the trading engine each month for the
+# managed resources. Separate from the Galactic Banking (interest) policy; same gate
+# (chartered + Community member).
+treasury_automation = {
+	# Available to any regular empire WITHOUT the Galactic Bank charter. It trades on
+	# whatever market the empire has: the internal market (available from game start)
+	# before the Galactic Market is founded, the galactic market afterwards. The trade
+	# effect's price-guard safely skips any empire/resource with no market price.
+	potential = {
+		is_country_type = default
+	}
+
+	allow = {
+		always = yes
+	}
+
+	# Default: off (manual trading).
+	option = {
+		name = "ta_off"
+		icon = "GFX_diplomatic_stance_withdrawn"
+		ai_weight = {
+			weight = 100	# AI empires keep manual/vanilla behaviour by default
+		}
+	}
+
+	option = {
+		name = "ta_on"
+		icon = "GFX_diplomatic_stance_mercantile"
+		policy_flags = {
+			treasury_automation_active
+		}
+		ai_weight = {
+			weight = 0
+		}
+	}
+
+	# Proactive: does everything the Automated desk does, PLUS actively buys commodities
+	# when they are cheap vs their recent average and sells when dear. Charges a monthly fee.
+	option = {
+		name = "ta_opportunistic"
+		icon = "GFX_diplomatic_stance_mercantile"
+		policy_flags = {
+			treasury_automation_active
+			go_trade_opportunistic
+		}
+		ai_weight = {
+			weight = 0
+		}
+	}
+}

@@ -1,0 +1,10 @@
+# Economy-strength score = summed monthly income of the core economic resources.
+# Used to pick the Galactic Market host (strongest economy), and reusable elsewhere.
+# Built on resource_income_compare (the same trigger vanilla's trade_bonus uses).
+go_economy_score = {
+	base = 0
+	complex_trigger_modifier = { trigger = resource_income_compare parameters = { resource = energy } mode = add }
+	complex_trigger_modifier = { trigger = resource_income_compare parameters = { resource = minerals } mode = add }
+	complex_trigger_modifier = { trigger = resource_income_compare parameters = { resource = alloys } mode = add }
+	complex_trigger_modifier = { trigger = resource_income_compare parameters = { resource = consumer_goods } mode = add }
+}

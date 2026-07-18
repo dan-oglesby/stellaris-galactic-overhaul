@@ -1,0 +1,6 @@
+﻿l_english:
+ go_banked_credits:0 "Banked Credits"
+ resolution_galactic_overhaul_rehost:0 "Re-evaluate Galactic Bank Host"
+ resolution_galactic_overhaul_rehost_desc:0 "Call a vote to re-appraise which Galactic Community member holds the Galactic Bank. On passage, the member with the largest reserves is named the new host."
+ resolution_galactic_overhaul_rehost_effect:0 "Re-evaluates the Galactic Bank host - the member with the largest reserves becomes host and gains the host interest bonus. Repeatable."
+ mod_country_resource_max_trade_add:0 "Trade Storage"

@@ -1,0 +1,10 @@
+# New Galactic Community resolution category housing the bank charter vote.
+# Slotted into the Commerce & Industry group, alongside the market resolutions.
+resolution_category_galactic_overhaul = {
+	group = commerce_industry
+	icon = "GFX_resolution_galactic_market"
+
+	resolution_types = {
+		"resolution_galactic_overhaul_charter"
+	}
+}

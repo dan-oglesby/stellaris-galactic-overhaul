@@ -1,0 +1,22 @@
+# Hooks Galactic Bank events onto the vanilla pulses.
+# on_action blocks with the same key are MERGED across files (vanilla + mods),
+# so these APPEND our events rather than replacing the vanilla lists.
+
+# Monthly: pay interest on stored energy (galactic_overhaul.1) + run Treasury Automation (galactic_overhaul.2).
+on_monthly_pulse_country = {
+	events = {
+		galactic_overhaul.1
+		galactic_overhaul.2
+		galactic_overhaul.3
+		galactic_overhaul.4
+	}
+}
+
+# Yearly: re-evaluate the Galactic Bank host (galactic_overhaul.20).
+# The event itself uses a once-per-year global latch, so this effectively
+# re-selects the host a single time per year despite firing per-country.
+on_yearly_pulse_country = {
+	events = {
+		galactic_overhaul.20
+	}
+}

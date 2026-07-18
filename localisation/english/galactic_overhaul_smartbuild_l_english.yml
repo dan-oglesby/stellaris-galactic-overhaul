@@ -1,0 +1,10 @@
+﻿l_english:
+ policy_smart_build:0 "Smart Build"
+ policy_smart_build_desc:0 "Empire-wide construction-ship automation. When enabled, your construction ships roam and build automatically: claiming adjacent systems with outposts, and - once researched - erecting hyper relays, gateways, orbital rings, and habitats across your territory. Disable Ultimate Automation's construction automation to avoid conflicts."
+ smart_build:0 "Smart Build"
+ smart_build_desc:0 "Empire-wide construction-ship automation toggle."
+ go_sb_off:0 "Manual Construction"
+ go_sb_off_desc:0 "You direct your construction ships yourself. No automation."
+ go_sb_on:0 "Smart Build"
+ go_sb_on_desc:0 "Construction ships roam and build automatically, in priority order: outposts on adjacent unclaimed systems, then hyper relays, gateways, orbital rings, and habitats wherever eligible and researched. All at normal resource costs."
+ go_smartbuild_active_name:0 "Smart Build"

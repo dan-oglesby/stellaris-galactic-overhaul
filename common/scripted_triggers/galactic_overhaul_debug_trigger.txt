@@ -1,0 +1,7 @@
+# Master debug switch for ALL Galactic Bank logging (interest, trading, tax, smart build).
+# Debug logging is ON BY DEFAULT - maximal logging at all times, no setup needed.
+# If game.log gets too noisy, the "Toggle Galactic Bank Debug Log" decision sets the
+# go_debug_off global flag to silence everything; toggling it again turns logging back on.
+go_debug_on = {
+	NOT = { has_global_flag = go_debug_off }
+}

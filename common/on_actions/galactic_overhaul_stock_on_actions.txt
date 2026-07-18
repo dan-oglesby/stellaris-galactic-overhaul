@@ -1,0 +1,6 @@
+# Stock market monthly tick (merges additively into the monthly country pulse).
+on_monthly_pulse_country = {
+	events = {
+		galactic_overhaul_stock.1
+	}
+}

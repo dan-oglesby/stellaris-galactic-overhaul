@@ -1,0 +1,30 @@
+# Galactic Bank - Auto-Colonization constants
+# -------------------------------------------------------------------
+# Colony-ship costs by authority. These mirror the established vanilla /
+# Ultimate Automation colony-ship costs (UA charges them to match the game).
+# Tune here if a patch changes them.
+
+# Normal empires: consumer goods + alloys + food
+@go_col_cost_norm_cg     = 200
+@go_col_cost_norm_alloys = 200
+@go_col_cost_norm_food   = 200
+# Hive minds: alloys + food
+@go_col_cost_hive_alloys = 200
+@go_col_cost_hive_food   = 500
+# Machine intelligences: alloys
+@go_col_cost_mach_alloys = 400
+
+# Negative copies for spending (there is no remove_resource effect; spend = negative add_resource)
+@go_col_cost_norm_cg_neg     = -200
+@go_col_cost_norm_alloys_neg = -200
+@go_col_cost_norm_food_neg   = -200
+@go_col_cost_hive_alloys_neg = -200
+@go_col_cost_hive_food_neg   = -500
+@go_col_cost_mach_alloys_neg = -400
+
+# Days between paying for a colony ship and it appearing (simulates build time)
+@go_col_build_days = 360
+# Days a picked target planet stays reserved so it is not re-picked next month
+@go_col_target_reserve_days = 1800
+# Days after founding before the automation-proxy debug check inspects the colony
+@go_col_proxy_check_days = 200

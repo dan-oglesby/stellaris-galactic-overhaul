@@ -1,0 +1,226 @@
+# ============================================================================
+# OVERRIDE of vanilla choose_galactic_market_host - picks the strongest-economy
+# eligible empire (value:go_economy_score) instead of the market_rating bid.
+# Loads after vanilla, so this wins (last-loaded override).
+# ============================================================================
+choose_galactic_market_host = {
+	ordered_country = {
+		limit = {
+			is_country_type = default
+			has_country_flag = market_nomination_eligible
+			any_owned_planet = { is_market_nominee_planet = yes }
+		}
+		order_by = value:go_economy_score
+		position = 0
+		save_global_event_target_as = market_founder
+		if = {
+			limit = { go_debug_on = yes }
+			log = "GALACTIC_OVERHAUL: galactic market host chosen (strongest-economy override active)"
+		}
+		random_owned_planet = {
+			limit = { is_market_nominee_planet = yes }
+			save_global_event_target_as = market_founder_planet
+		}
+	}
+	every_playable_country = {
+		limit = { has_country_flag = market_nomination_eligible }
+		remove_galactic_market_modifiers = yes
+	}
+}
+
+# ============================================================================
+# galactic_overhaul_trade_resource - parameterized auto-trade for ONE resource.
+# Call as: galactic_overhaul_trade_resource = { RESOURCE = minerals }
+# ----------------------------------------------------------------------------
+# SELL when a resource is going to waste: stockpile is near its CAP (>= max *
+#   @go_trade_sell_cap_frac) AND income is positive (overflow being lost) ->
+#   sell the surplus down to max * @go_trade_sell_keep_frac.
+# BUY when a resource is being lost: income is negative AND stockpile is near
+#   zero (<= @go_trade_buy_floor) -> buy as much as the spare energy can afford
+#   at the current market price (capped per month).
+# Trades at the live fee-free market price * a simulated fee * a price-impact
+# penalty that grows with accumulated trade pressure. Reads cap via
+# export_resource_maximum_to_variable and income via export_resource_income_to_variable.
+# ============================================================================
+galactic_overhaul_trade_resource = {
+	# init + monthly decay of price-impact pressure
+	if = {
+		limit = { NOT = { is_variable_set = go_pressure_$RESOURCE$ } }
+		set_variable = { which = go_pressure_$RESOURCE$ value = 0 }
+	}
+	multiply_variable = { which = go_pressure_$RESOURCE$ value = @go_trade_pressure_decay }
+	# action result for the caller's debug log: 0 = no action, 1 = sold, 2 = bought
+	set_variable = { which = go_t_action value = 0 }
+	set_variable = { which = go_t_amt value = 0 }
+
+	# read live price, stockpile, cap, income
+	export_trigger_value_to_variable = {
+		trigger = market_resource_price
+		parameters = { resource = $RESOURCE$ amount = 1 trade_type = not_set }
+		variable = go_t_price
+	}
+	export_resource_stockpile_to_variable = { resource = $RESOURCE$ variable = go_t_stock }
+	export_resource_maximum_to_variable  = { resource = $RESOURCE$ variable = go_t_max }
+	export_resource_income_to_variable   = { resource = $RESOURCE$ variable = go_t_income }
+
+	# per-resource status is logged by the CALLER (galactic_overhaul.2): scripted-effect
+	# logs do NOT render [This.x] scope macros at runtime, but event logs do.
+
+	# effective price = price * (1 + impact_coef * pressure)
+	set_variable = { which = go_t_eff value = go_pressure_$RESOURCE$ }
+	multiply_variable = { which = go_t_eff value = @go_trade_impact_coef }
+	change_variable = { which = go_t_eff value = 1 }
+	multiply_variable = { which = go_t_eff value = go_t_price }
+	if = { limit = { check_variable = { which = go_t_eff value < 0 } } set_variable = { which = go_t_eff value = 0 } }
+
+	# sell trigger level = cap * sell_cap_frac
+	set_variable = { which = go_t_sellthresh value = go_t_max }
+	multiply_variable = { which = go_t_sellthresh value = @go_trade_sell_cap_frac }
+
+	# ===================== SELL: near cap AND surplus income =====================
+	if = {
+		limit = {
+			check_variable = { which = go_t_price value > 0 }
+			check_variable = { which = go_t_max value > 0 }
+			check_variable = { which = go_t_stock value >= go_t_sellthresh }
+			check_variable = { which = go_t_income value > 0 }
+		}
+		# sell down to cap * keep_frac, capped per month
+		set_variable = { which = go_t_keep value = go_t_max }
+		multiply_variable = { which = go_t_keep value = @go_trade_sell_keep_frac }
+		set_variable = { which = go_t_amt value = go_t_stock }
+		subtract_variable = { which = go_t_amt value = go_t_keep }
+		if = {
+			limit = { check_variable = { which = go_t_amt value > @go_trade_max_per_month } }
+			set_variable = { which = go_t_amt value = @go_trade_max_per_month }
+		}
+		if = {
+			limit = { check_variable = { which = go_t_amt value > 0 } }
+			set_variable = { which = go_t_gain value = go_t_amt }
+			multiply_variable = { which = go_t_gain value = go_t_eff }
+			multiply_variable = { which = go_t_gain value = @go_trade_sell_feemult }
+			add_resource = { $RESOURCE$ = -1 mult = go_t_amt }
+			add_resource = { trade = 1 mult = go_t_gain }
+			subtract_variable = { which = go_pressure_$RESOURCE$ value = go_t_amt }
+			set_variable = { which = go_t_action value = 1 }
+		}
+	}
+	# ===================== BUY: losing it AND near zero =====================
+	else_if = {
+		limit = {
+			check_variable = { which = go_t_price value > 0 }
+			check_variable = { which = go_t_income value < 0 }
+			check_variable = { which = go_t_stock value <= @go_trade_buy_floor }
+		}
+		# spare energy above the reserve
+		export_resource_stockpile_to_variable = { resource = trade variable = go_t_energy }
+		subtract_variable = { which = go_t_energy value = @go_trade_energy_floor }
+		# per-unit cost = eff price * buy fee
+		set_variable = { which = go_t_unit value = go_t_eff }
+		multiply_variable = { which = go_t_unit value = @go_trade_buy_feemult }
+		if = {
+			limit = {
+				check_variable = { which = go_t_energy value > 0 }
+				check_variable = { which = go_t_unit value > 0 }
+			}
+			# buy as much as the spare energy affords, capped per month
+			set_variable = { which = go_t_amt value = go_t_energy }
+			divide_variable = { which = go_t_amt value = go_t_unit }
+			if = {
+				limit = { check_variable = { which = go_t_amt value > @go_trade_max_per_month } }
+				set_variable = { which = go_t_amt value = @go_trade_max_per_month }
+			}
+			if = {
+				limit = { check_variable = { which = go_t_amt value > 0 } }
+				set_variable = { which = go_t_cost value = go_t_amt }
+				multiply_variable = { which = go_t_cost value = go_t_unit }
+				add_resource = { $RESOURCE$ = 1 mult = go_t_amt }
+				add_resource = { trade = -1 mult = go_t_cost }
+				change_variable = { which = go_pressure_$RESOURCE$ value = go_t_amt }
+				set_variable = { which = go_t_action value = 2 }
+			}
+		}
+	}
+
+	# ===================== OPPORTUNISTIC: buy cheap / sell dear vs a price EMA =====================
+	# Only for the Opportunistic desk, and only if the cap/income safety logic did NOT already act.
+	# Tracks a per-resource price EMA (go_opp_mean_$RESOURCE$); buys below buy_mult*mean, sells above
+	# sell_mult*mean (keeping a reserve). act codes: 3 = opportunistic buy, 4 = opportunistic sell.
+	if = {
+		limit = {
+			has_policy_flag = go_trade_opportunistic
+			check_variable = { which = go_t_action value = 0 }
+			check_variable = { which = go_t_price value > 0 }
+		}
+		if = { limit = { NOT = { is_variable_set = go_opp_mean_$RESOURCE$ } } set_variable = { which = go_opp_mean_$RESOURCE$ value = go_t_price } }
+		set_variable = { which = go_t_lo value = go_opp_mean_$RESOURCE$ }
+		multiply_variable = { which = go_t_lo value = @go_opp_buy_mult }
+		set_variable = { which = go_t_hi value = go_opp_mean_$RESOURCE$ }
+		multiply_variable = { which = go_t_hi value = @go_opp_sell_mult }
+
+		# --- BUY when cheap (price < lo) and still below the cap ---
+		if = {
+			limit = {
+				check_variable = { which = go_t_price value < go_t_lo }
+				check_variable = { which = go_t_stock value < go_t_max }
+			}
+			export_resource_stockpile_to_variable = { resource = trade variable = go_t_energy }
+			subtract_variable = { which = go_t_energy value = @go_trade_energy_floor }
+			set_variable = { which = go_t_unit value = go_t_eff }
+			multiply_variable = { which = go_t_unit value = @go_trade_buy_feemult }
+			if = {
+				limit = { check_variable = { which = go_t_energy value > 0 } check_variable = { which = go_t_unit value > 0 } }
+				set_variable = { which = go_t_amt value = go_t_energy }
+				divide_variable = { which = go_t_amt value = go_t_unit }
+				if = { limit = { check_variable = { which = go_t_amt value > @go_opp_max_per_month } } set_variable = { which = go_t_amt value = @go_opp_max_per_month } }
+				if = {
+					limit = { check_variable = { which = go_t_amt value > 0 } }
+					set_variable = { which = go_t_cost value = go_t_amt }
+					multiply_variable = { which = go_t_cost value = go_t_unit }
+					add_resource = { $RESOURCE$ = 1 mult = go_t_amt }
+					add_resource = { trade = -1 mult = go_t_cost }
+					change_variable = { which = go_pressure_$RESOURCE$ value = go_t_amt }
+					set_variable = { which = go_t_action value = 3 }
+				}
+			}
+		}
+		# --- SELL when dear (price > hi) and we hold above the reserve floor ---
+		else_if = {
+			limit = {
+				check_variable = { which = go_t_price value > go_t_hi }
+				check_variable = { which = go_t_stock value > @go_opp_sell_floor }
+			}
+			set_variable = { which = go_t_amt value = go_t_stock }
+			subtract_variable = { which = go_t_amt value = @go_opp_sell_floor }
+			if = { limit = { check_variable = { which = go_t_amt value > @go_opp_max_per_month } } set_variable = { which = go_t_amt value = @go_opp_max_per_month } }
+			if = {
+				limit = { check_variable = { which = go_t_amt value > 0 } }
+				set_variable = { which = go_t_gain value = go_t_amt }
+				multiply_variable = { which = go_t_gain value = go_t_eff }
+				multiply_variable = { which = go_t_gain value = @go_trade_sell_feemult }
+				add_resource = { $RESOURCE$ = -1 mult = go_t_amt }
+				add_resource = { trade = 1 mult = go_t_gain }
+				subtract_variable = { which = go_pressure_$RESOURCE$ value = go_t_amt }
+				set_variable = { which = go_t_action value = 4 }
+			}
+		}
+
+		# update the reference EMA: mean += alpha * (price - mean)
+		set_variable = { which = go_t_tmp value = go_t_price }
+		subtract_variable = { which = go_t_tmp value = go_opp_mean_$RESOURCE$ }
+		multiply_variable = { which = go_t_tmp value = @go_opp_alpha }
+		change_variable = { which = go_opp_mean_$RESOURCE$ value = go_t_tmp }
+		clear_variable = go_t_lo
+		clear_variable = go_t_hi
+		clear_variable = go_t_tmp
+	}
+
+	# go_t_action/amt/stock/max/income/price left set for galactic_overhaul.2 to log, cleared there
+	clear_variable = go_t_eff
+	clear_variable = go_t_sellthresh
+	clear_variable = go_t_keep
+	clear_variable = go_t_gain
+	clear_variable = go_t_cost
+	clear_variable = go_t_energy
+	clear_variable = go_t_unit
+}

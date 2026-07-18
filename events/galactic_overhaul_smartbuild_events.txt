@@ -1,0 +1,475 @@
+namespace = galactic_overhaul_smartbuild
+
+# ============================================================================
+# SMART BUILD - construction-ship automation.
+# v0.9.1: fixed empty queue_action failure effects (now each carries a log -
+# empty effect blocks are rejected by the engine and broke the whole queue);
+# orbital-ring planet pick uses its own trigger; outpost is_constructing line
+# removed. 5 prioritized passes/scan: outpost > relay > gateway > orbital ring
+# > habitat. One job at a time (go_smartbuild_blocked_fleet). Log tag:
+# GALACTIC_OVERHAUL_SMARTBUILD.
+# ============================================================================
+
+# ----- .10 Enrollment sweep -----
+country_event = {
+	id = galactic_overhaul_smartbuild.10
+	hide_window = yes
+	is_triggered_only = yes
+	immediate = {
+		if = {
+			limit = { has_policy_flag = go_smartbuild_active }
+			every_owned_fleet = {
+				limit = { is_ship_size = constructor NOT = { has_fleet_flag = go_smartbuild_ship } }
+				set_fleet_flag = go_smartbuild_ship
+				fleet_event = { id = galactic_overhaul_smartbuild.1 }
+				if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_SMARTBUILD: enrolled constructor [This.GetName]" }
+			}
+		}
+		else = {
+			every_owned_fleet = {
+				limit = { has_fleet_flag = go_smartbuild_ship }
+				remove_fleet_flag = go_smartbuild_ship
+				remove_fleet_flag = go_smartbuild_blocked_fleet
+				clear_fleet_actions = this
+				clear_orders = yes
+				if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_SMARTBUILD: released constructor [This.GetName]" }
+			}
+		}
+	}
+}
+
+# ----- .11 New-ship enrollment -----
+ship_event = {
+	id = galactic_overhaul_smartbuild.11
+	hide_window = yes
+	is_triggered_only = yes
+	trigger = { is_ship_class = shipclass_constructor owner = { has_policy_flag = go_smartbuild_active } }
+	immediate = {
+		fleet = {
+			if = {
+				limit = { NOT = { has_fleet_flag = go_smartbuild_ship } }
+				set_fleet_flag = go_smartbuild_ship
+				fleet_event = { id = galactic_overhaul_smartbuild.1 }
+				if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_SMARTBUILD: new constructor enrolled [This.GetName]" }
+			}
+		}
+	}
+}
+
+# ----- .1 Roaming driver: 5 prioritized passes, then wait, repeat -----
+fleet_event = {
+	id = galactic_overhaul_smartbuild.1
+	hide_window = yes
+	is_triggered_only = yes
+	trigger = { has_fleet_flag = go_smartbuild_ship }
+	immediate = {
+		if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_SMARTBUILD: driver starting for [This.GetName]" }
+		clear_fleet_actions = this
+		clear_orders = yes
+		queue_actions = {
+			repeat = {
+
+					# --- PASS 0a: MINING STATION (deposit body, instant build, deficit-first) ---
+					find_closest_system = {
+						trigger = {
+							id = gbsb.1.t.mining
+							root = {
+								go_smartbuild_fleet_free = { FLEET = root }
+								owner = { resource_stockpile_compare = { resource = alloys value >= @go_sb_station_alloys } }
+								go_smartbuild_mining_check = { CHECK_SYSTEM = prev }
+							}
+						}
+						found_system = {
+							effect = { id = gbsb.1.e.mining_sys if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_SMARTBUILD: [Root.GetName] targeting MINING STATION in [This.GetName]" } }
+							move_to = this
+							find_closest_planet = {
+								trigger = { id = gbsb.1.t.mining_p has_deposit_for = shipclass_mining_station }
+								found_planet = {
+									orbit_planet = this
+									effect = {
+										id = gbsb.1.e.mining_p
+										create_mining_station = { owner = root.owner }
+										root = { owner = { add_resource = { alloys = @go_sb_station_alloys_neg } } }
+										if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_SMARTBUILD: [Root.GetName] BUILT MINING STATION at [This.GetName]" }
+									}
+								}
+								failed = { effect = { id = gbsb.1.e.mining_f if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_SMARTBUILD: [Root.GetName] mining: no deposit body" } } }
+							}
+						}
+						failed = { effect = { id = gbsb.1.e.mining_x if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_SMARTBUILD: [Root.GetName] no mining target" } } }
+					}
+
+					# --- PASS 0b: RESEARCH STATION (deposit body, instant build, deficit-first) ---
+					find_closest_system = {
+						trigger = {
+							id = gbsb.1.t.research
+							root = {
+								go_smartbuild_fleet_free = { FLEET = root }
+								owner = { resource_stockpile_compare = { resource = alloys value >= @go_sb_station_alloys } }
+								go_smartbuild_research_check = { CHECK_SYSTEM = prev }
+							}
+						}
+						found_system = {
+							effect = { id = gbsb.1.e.research_sys if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_SMARTBUILD: [Root.GetName] targeting RESEARCH STATION in [This.GetName]" } }
+							move_to = this
+							find_closest_planet = {
+								trigger = { id = gbsb.1.t.research_p has_deposit_for = shipclass_research_station }
+								found_planet = {
+									orbit_planet = this
+									effect = {
+										id = gbsb.1.e.research_p
+										create_research_station = { owner = root.owner }
+										root = { owner = { add_resource = { alloys = @go_sb_station_alloys_neg } } }
+										if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_SMARTBUILD: [Root.GetName] BUILT RESEARCH STATION at [This.GetName]" }
+									}
+								}
+								failed = { effect = { id = gbsb.1.e.research_f if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_SMARTBUILD: [Root.GetName] research: no deposit body" } } }
+							}
+						}
+						failed = { effect = { id = gbsb.1.e.research_x if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_SMARTBUILD: [Root.GetName] no research target" } } }
+					}
+
+				# --- PASS 1: OUTPOST (star) ---
+				find_closest_system = {
+					trigger = {
+						id = gbsb.1.t.outpost
+						root = {
+							go_smartbuild_fleet_free = { FLEET = root }
+							owner = {
+								resource_stockpile_compare = { resource = influence value >= @go_sb_outpost_influence }
+								resource_stockpile_compare = { resource = alloys value >= @go_sb_outpost_alloys }
+							}
+							go_smartbuild_outpost_check = { CHECK_SYSTEM = prev }
+						}
+					}
+					found_system = {
+						effect = {
+							id = gbsb.1.e.outpost_sys
+							set_timed_star_flag = { flag = go_smartbuild_blocked_system days = @go_sb_system_block_time }
+							if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_SMARTBUILD: [Root.GetName] targeting OUTPOST at [This.GetName]" }
+						}
+						move_to = this
+						find_closest_planet = {
+							trigger = { id = gbsb.1.t.outpost_p is_primary_star = yes has_orbital_station = no }
+							found_planet = {
+								orbit_planet = this
+								effect = {
+									id = gbsb.1.e.outpost_p
+									root = { set_fleet_flag = go_smartbuild_blocked_fleet }
+									planet_event = { id = galactic_overhaul_smartbuild.2 days = @go_sb_outpost_build_time }
+								}
+							}
+							failed = { effect = { id = gbsb.1.e.outpost_f if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_SMARTBUILD: [Root.GetName] outpost: no buildable star" } } }
+						}
+					}
+					failed = { effect = { id = gbsb.1.e.outpost_x if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_SMARTBUILD: [Root.GetName] no outpost target" } } }
+				}
+
+				# --- PASS 2: HYPER RELAY (star) ---
+				find_closest_system = {
+					trigger = {
+						id = gbsb.1.t.relay
+						root = {
+							go_smartbuild_fleet_free = { FLEET = root }
+							owner = {
+								has_technology = tech_hyper_relays
+								resource_stockpile_compare = { resource = alloys value >= @go_sb_relay_alloys }
+								resource_stockpile_compare = { resource = influence value >= @go_sb_relay_influence }
+							}
+							go_smartbuild_relay_check = { CHECK_SYSTEM = prev }
+						}
+					}
+					found_system = {
+						effect = {
+							id = gbsb.1.e.relay_sys
+							set_timed_star_flag = { flag = go_smartbuild_blocked_system days = @go_sb_system_block_time }
+							if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_SMARTBUILD: [Root.GetName] targeting RELAY at [This.GetName]" }
+						}
+						move_to = this
+						find_closest_planet = {
+							trigger = { id = gbsb.1.t.relay_p is_primary_star = yes }
+							found_planet = {
+								orbit_planet = this
+								effect = {
+									id = gbsb.1.e.relay_p
+									root = { set_fleet_flag = go_smartbuild_blocked_fleet }
+									planet_event = { id = galactic_overhaul_smartbuild.3 days = @go_sb_relay_build_time }
+								}
+							}
+							failed = { effect = { id = gbsb.1.e.relay_f if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_SMARTBUILD: [Root.GetName] relay: no buildable star" } } }
+						}
+					}
+					failed = { effect = { id = gbsb.1.e.relay_x if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_SMARTBUILD: [Root.GetName] no relay target" } } }
+				}
+
+				# --- PASS 3: GATEWAY (star) ---
+				find_closest_system = {
+					trigger = {
+						id = gbsb.1.t.gateway
+						root = {
+							go_smartbuild_fleet_free = { FLEET = root }
+							owner = {
+								has_technology = tech_gateway_construction
+								resource_stockpile_compare = { resource = alloys value >= @go_sb_gateway_alloys }
+								resource_stockpile_compare = { resource = influence value >= @go_sb_gateway_influence }
+							}
+							go_smartbuild_gateway_check = { CHECK_SYSTEM = prev }
+						}
+					}
+					found_system = {
+						effect = {
+							id = gbsb.1.e.gateway_sys
+							set_timed_star_flag = { flag = go_smartbuild_blocked_system days = @go_sb_system_block_time }
+							if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_SMARTBUILD: [Root.GetName] targeting GATEWAY at [This.GetName]" }
+						}
+						move_to = this
+						find_closest_planet = {
+							trigger = { id = gbsb.1.t.gateway_p is_primary_star = yes }
+							found_planet = {
+								orbit_planet = this
+								effect = {
+									id = gbsb.1.e.gateway_p
+									root = { set_fleet_flag = go_smartbuild_blocked_fleet }
+									planet_event = { id = galactic_overhaul_smartbuild.4 days = @go_sb_gateway_build_time }
+								}
+							}
+							failed = { effect = { id = gbsb.1.e.gateway_f if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_SMARTBUILD: [Root.GetName] gateway: no buildable star" } } }
+						}
+					}
+					failed = { effect = { id = gbsb.1.e.gateway_x if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_SMARTBUILD: [Root.GetName] no gateway target" } } }
+				}
+
+				# --- PASS 4: ORBITAL RING (colony) ---
+				find_closest_system = {
+					trigger = {
+						id = gbsb.1.t.ring
+						root = {
+							go_smartbuild_fleet_free = { FLEET = root }
+							owner = {
+								has_technology = tech_orbital_ring_tier_1
+								resource_stockpile_compare = { resource = alloys value >= @go_sb_ring_alloys }
+								resource_stockpile_compare = { resource = influence value >= @go_sb_ring_influence }
+							}
+							go_smartbuild_ring_check = { CHECK_SYSTEM = prev }
+						}
+					}
+					found_system = {
+						effect = {
+							id = gbsb.1.e.ring_sys
+							set_timed_star_flag = { flag = go_smartbuild_blocked_system days = @go_sb_system_block_time }
+							if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_SMARTBUILD: [Root.GetName] targeting ORBITAL RING at [This.GetName]" }
+						}
+						move_to = this
+						find_closest_planet = {
+							trigger = { id = gbsb.1.t.ring_p root = { go_smartbuild_ring_planet = { CHECK_PLANET = prev } } }
+							found_planet = {
+								orbit_planet = this
+								effect = {
+									id = gbsb.1.e.ring_p
+									root = { set_fleet_flag = go_smartbuild_blocked_fleet }
+									planet_event = { id = galactic_overhaul_smartbuild.5 days = @go_sb_ring_build_time }
+								}
+							}
+							failed = { effect = { id = gbsb.1.e.ring_f if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_SMARTBUILD: [Root.GetName] ring: no buildable colony" } } }
+						}
+					}
+					failed = { effect = { id = gbsb.1.e.ring_x if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_SMARTBUILD: [Root.GetName] no orbital ring target" } } }
+				}
+
+				# --- PASS 5: HABITAT (star) ---
+				find_closest_system = {
+					trigger = {
+						id = gbsb.1.t.habitat
+						root = {
+							go_smartbuild_fleet_free = { FLEET = root }
+							owner = {
+								has_technology = tech_habitat_1
+								resource_stockpile_compare = { resource = alloys value >= @go_sb_habitat_alloys }
+								resource_stockpile_compare = { resource = influence value >= @go_sb_habitat_influence }
+							}
+							go_smartbuild_habitat_check = { CHECK_SYSTEM = prev }
+						}
+					}
+					found_system = {
+						effect = {
+							id = gbsb.1.e.habitat_sys
+							set_timed_star_flag = { flag = go_smartbuild_blocked_system days = @go_sb_system_block_time }
+							if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_SMARTBUILD: [Root.GetName] targeting HABITAT at [This.GetName]" }
+						}
+						move_to = this
+						find_closest_planet = {
+							trigger = { id = gbsb.1.t.habitat_p is_primary_star = yes }
+							found_planet = {
+								orbit_planet = this
+								effect = {
+									id = gbsb.1.e.habitat_p
+									root = { set_fleet_flag = go_smartbuild_blocked_fleet }
+									planet_event = { id = galactic_overhaul_smartbuild.6 days = @go_sb_habitat_build_time }
+								}
+							}
+							failed = { effect = { id = gbsb.1.e.habitat_f if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_SMARTBUILD: [Root.GetName] habitat: no buildable star" } } }
+						}
+					}
+					failed = { effect = { id = gbsb.1.e.habitat_x if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_SMARTBUILD: [Root.GetName] no habitat target" } } }
+				}
+
+				wait = { duration = @go_sb_retry_days }
+			}
+		}
+	}
+}
+
+# ----- .2 Build OUTPOST -----
+planet_event = {
+	id = galactic_overhaul_smartbuild.2
+	hide_window = yes
+	is_triggered_only = yes
+	trigger = { any_fleet_in_orbit = { has_fleet_flag = go_smartbuild_ship has_fleet_flag = go_smartbuild_blocked_fleet } }
+	immediate = {
+		random_fleet_in_orbit = {
+			limit = { has_fleet_flag = go_smartbuild_ship has_fleet_flag = go_smartbuild_blocked_fleet }
+			owner = { save_event_target_as = gbsb_builder }
+			if = {
+				limit = {
+					solar_system = { NOR = { exists = space_owner } }
+					event_target:gbsb_builder = {
+						resource_stockpile_compare = { resource = influence value >= @go_sb_outpost_influence }
+						resource_stockpile_compare = { resource = alloys value >= @go_sb_outpost_alloys }
+					}
+				}
+				solar_system = { create_starbase = { size = starbase_outpost owner = event_target:gbsb_builder } }
+				event_target:gbsb_builder = {
+					add_resource = { influence = @go_sb_outpost_influence_neg }
+					add_resource = { alloys = @go_sb_outpost_alloys_neg }
+				}
+				if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_SMARTBUILD: [This.GetName] CLAIMED OUTPOST" }
+			}
+			else = { if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_SMARTBUILD: [This.GetName] outpost aborted" } }
+			remove_fleet_flag = go_smartbuild_blocked_fleet
+		}
+	}
+}
+
+# ----- .3 Build HYPER RELAY -----
+planet_event = {
+	id = galactic_overhaul_smartbuild.3
+	hide_window = yes
+	is_triggered_only = yes
+	trigger = { any_fleet_in_orbit = { has_fleet_flag = go_smartbuild_ship has_fleet_flag = go_smartbuild_blocked_fleet } }
+	immediate = {
+		random_fleet_in_orbit = {
+			limit = { has_fleet_flag = go_smartbuild_ship has_fleet_flag = go_smartbuild_blocked_fleet }
+			owner = { save_event_target_as = gbsb_builder }
+			if = {
+				limit = {
+					solar_system = { NOR = { has_megastructure = hyper_relay has_megastructure = hyper_relay_restored } }
+					event_target:gbsb_builder = {
+						resource_stockpile_compare = { resource = alloys value >= @go_sb_relay_alloys }
+						resource_stockpile_compare = { resource = influence value >= @go_sb_relay_influence }
+					}
+				}
+				prev = { solar_system = { spawn_megastructure = { type = hyper_relay owner = event_target:gbsb_builder coords_from = prev } } }
+				event_target:gbsb_builder = {
+					add_resource = { alloys = @go_sb_relay_alloys_neg }
+					add_resource = { influence = @go_sb_relay_influence_neg }
+				}
+				if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_SMARTBUILD: [This.GetName] BUILT HYPER RELAY" }
+			}
+			else = { if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_SMARTBUILD: [This.GetName] relay aborted" } }
+			remove_fleet_flag = go_smartbuild_blocked_fleet
+		}
+	}
+}
+
+# ----- .4 Build GATEWAY -----
+planet_event = {
+	id = galactic_overhaul_smartbuild.4
+	hide_window = yes
+	is_triggered_only = yes
+	trigger = { any_fleet_in_orbit = { has_fleet_flag = go_smartbuild_ship has_fleet_flag = go_smartbuild_blocked_fleet } }
+	immediate = {
+		random_fleet_in_orbit = {
+			limit = { has_fleet_flag = go_smartbuild_ship has_fleet_flag = go_smartbuild_blocked_fleet }
+			owner = { save_event_target_as = gbsb_builder }
+			if = {
+				limit = {
+					solar_system = { NOR = { has_megastructure = gateway_final has_megastructure = gateway_restored has_megastructure = gateway_0 } }
+					event_target:gbsb_builder = {
+						resource_stockpile_compare = { resource = alloys value >= @go_sb_gateway_alloys }
+						resource_stockpile_compare = { resource = influence value >= @go_sb_gateway_influence }
+					}
+				}
+				prev = { solar_system = { spawn_megastructure = { type = gateway_0 owner = event_target:gbsb_builder coords_from = prev } } }
+				event_target:gbsb_builder = {
+					add_resource = { alloys = @go_sb_gateway_alloys_neg }
+					add_resource = { influence = @go_sb_gateway_influence_neg }
+				}
+				if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_SMARTBUILD: [This.GetName] BUILT GATEWAY" }
+			}
+			else = { if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_SMARTBUILD: [This.GetName] gateway aborted" } }
+			remove_fleet_flag = go_smartbuild_blocked_fleet
+		}
+	}
+}
+
+# ----- .5 Build ORBITAL RING (over the orbited colony) -----
+planet_event = {
+	id = galactic_overhaul_smartbuild.5
+	hide_window = yes
+	is_triggered_only = yes
+	trigger = { any_fleet_in_orbit = { has_fleet_flag = go_smartbuild_ship has_fleet_flag = go_smartbuild_blocked_fleet } }
+	immediate = {
+		random_fleet_in_orbit = {
+			limit = { has_fleet_flag = go_smartbuild_ship has_fleet_flag = go_smartbuild_blocked_fleet }
+			owner = { save_event_target_as = gbsb_builder }
+			if = {
+				limit = {
+					prev = { NOR = { has_planet_flag = megastructure has_planet_flag = has_megastructure } }
+					event_target:gbsb_builder = {
+						resource_stockpile_compare = { resource = alloys value >= @go_sb_ring_alloys }
+						resource_stockpile_compare = { resource = influence value >= @go_sb_ring_influence }
+					}
+				}
+				prev = { solar_system = { spawn_megastructure = { type = orbital_ring owner = event_target:gbsb_builder coords_from = prev } } }
+				event_target:gbsb_builder = {
+					add_resource = { alloys = @go_sb_ring_alloys_neg }
+					add_resource = { influence = @go_sb_ring_influence_neg }
+				}
+				if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_SMARTBUILD: [This.GetName] BUILT ORBITAL RING" }
+			}
+			else = { if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_SMARTBUILD: [This.GetName] orbital ring aborted" } }
+			remove_fleet_flag = go_smartbuild_blocked_fleet
+		}
+	}
+}
+
+# ----- .6 Build HABITAT -----
+planet_event = {
+	id = galactic_overhaul_smartbuild.6
+	hide_window = yes
+	is_triggered_only = yes
+	trigger = { any_fleet_in_orbit = { has_fleet_flag = go_smartbuild_ship has_fleet_flag = go_smartbuild_blocked_fleet } }
+	immediate = {
+		random_fleet_in_orbit = {
+			limit = { has_fleet_flag = go_smartbuild_ship has_fleet_flag = go_smartbuild_blocked_fleet }
+			owner = { save_event_target_as = gbsb_builder }
+			if = {
+				limit = {
+					solar_system = { NOR = { has_megastructure = habitat_central_complex has_megastructure = habitat_central_complex_restored } }
+					event_target:gbsb_builder = {
+						resource_stockpile_compare = { resource = alloys value >= @go_sb_habitat_alloys }
+						resource_stockpile_compare = { resource = influence value >= @go_sb_habitat_influence }
+					}
+				}
+				prev = { solar_system = { spawn_megastructure = { type = habitat_central_complex owner = event_target:gbsb_builder coords_from = prev } } }
+				event_target:gbsb_builder = {
+					add_resource = { alloys = @go_sb_habitat_alloys_neg }
+					add_resource = { influence = @go_sb_habitat_influence_neg }
+				}
+				if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_SMARTBUILD: [This.GetName] BUILT HABITAT" }
+			}
+			else = { if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_SMARTBUILD: [This.GetName] habitat aborted" } }
+			remove_fleet_flag = go_smartbuild_blocked_fleet
+		}
+	}
+}

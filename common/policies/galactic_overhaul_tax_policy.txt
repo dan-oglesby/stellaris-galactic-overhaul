@@ -1,0 +1,62 @@
+# "Taxation Doctrine" policy - automated taxation of private commerce (trade value).
+# Each stance sets a target rate the monthly revenue service (galactic_overhaul.3) drifts
+# toward. Available to conventional (non-gestalt) empires; no charter required.
+taxation_doctrine = {
+	potential = {
+		is_country_type = default
+		is_gestalt = no		# gestalts have no private commerce / trade value
+	}
+
+	allow = {
+		always = yes
+	}
+
+	# Default: no taxation.
+	option = {
+		name = "go_tax_off"
+		icon = "GFX_diplomatic_stance_withdrawn"
+		ai_weight = {
+			weight = 100	# AI keeps vanilla behaviour by default
+		}
+	}
+
+	# Laissez-Faire - drift toward the lower bound; happy private sector.
+	option = {
+		name = "go_tax_low"
+		icon = "GFX_diplomatic_stance_cooperative"
+		policy_flags = {
+			go_tax_active
+			go_tax_mode_low
+		}
+		modifier = {
+			pop_happiness = 0.05
+		}
+		ai_weight = { weight = 0 }
+	}
+
+	# Balanced Levy - hold near the middle of the band.
+	option = {
+		name = "go_tax_balanced"
+		icon = "GFX_diplomatic_stance_mercantile"
+		policy_flags = {
+			go_tax_active
+			go_tax_mode_balanced
+		}
+		ai_weight = { weight = 0 }
+	}
+
+	# Heavy Taxation - drive toward the upper bound; resentful populace.
+	option = {
+		name = "go_tax_high"
+		icon = "GFX_diplomatic_stance_supremacy"
+		policy_flags = {
+			go_tax_active
+			go_tax_mode_high
+		}
+		modifier = {
+			pop_happiness = -0.05
+			planet_stability_add = -5
+		}
+		ai_weight = { weight = 0 }
+	}
+}

@@ -1,0 +1,20 @@
+# Sets go_share_price = the galactic market index: the average unit price of
+# energy, minerals, alloys and consumer goods (fee-free reference price). Shared
+# by the monthly tick (galactic_overhaul_stock.1) and the Liquidate decision.
+# No logging here on purpose - scripted-effect logs don't render scope macros.
+go_compute_share_price = {
+	export_trigger_value_to_variable = { trigger = market_resource_price parameters = { resource = energy amount = 1 trade_type = not_set } variable = go_st_tmp }
+	set_variable = { which = go_share_price value = go_st_tmp }
+	export_trigger_value_to_variable = { trigger = market_resource_price parameters = { resource = minerals amount = 1 trade_type = not_set } variable = go_st_tmp }
+	change_variable = { which = go_share_price value = go_st_tmp }
+	export_trigger_value_to_variable = { trigger = market_resource_price parameters = { resource = alloys amount = 1 trade_type = not_set } variable = go_st_tmp }
+	change_variable = { which = go_share_price value = go_st_tmp }
+	export_trigger_value_to_variable = { trigger = market_resource_price parameters = { resource = consumer_goods amount = 1 trade_type = not_set } variable = go_st_tmp }
+	change_variable = { which = go_share_price value = go_st_tmp }
+	divide_variable = { which = go_share_price value = 4 }
+	if = {
+		limit = { check_variable = { which = go_share_price value < @go_share_price_floor } }
+		set_variable = { which = go_share_price value = @go_share_price_floor }
+	}
+	clear_variable = go_st_tmp
+}

@@ -1,0 +1,9 @@
+# Galactic Bank - Auto-Colonization hooks.
+# on_actions merge additively across files, so this only ADDS the colony driver
+# to the monthly country pulse (it does not override the other monthly hooks).
+
+on_monthly_pulse_country = {
+	events = {
+		galactic_overhaul_colony.2
+	}
+}

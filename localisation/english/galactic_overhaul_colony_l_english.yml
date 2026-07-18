@@ -1,0 +1,11 @@
+﻿l_english:
+ policy_auto_colonization:0 "Auto-Colonization"
+ policy_auto_colonization_desc:0 "Stands up an automated colonization office. When active, each month your expansion ministry scouts for the best colonisable world inside your borders, then funds and launches a colony ship to settle it - paying the standard colony-ship cost for your authority. Pair it with the empire's Auto-Manage New Colonies setting to have each new world governed automatically."
+ auto_colonization:0 "Auto-Colonization"
+ auto_colonization_desc:0 "Automatically build and launch colony ships to colonisable worlds within your borders."
+ go_col_off:0 "Manual Colonization"
+ go_col_off_desc:0 "Colonization is directed by hand. No colony ships are built or launched automatically."
+ go_col_on:0 "Automated Colony Office"
+ go_col_on_desc:0 "Each month, the colony office picks a colonisable world within your borders that you can afford, then dispatches an idle colony ship or funds a new one (at the normal cost for your authority) and sends it to settle. To have the new worlds developed for you, also enable the empire-wide §YAuto-Manage New Colonies§! setting - the colonies this founds are ordinary colonies and will be governed by it."
+ go_autocolony_active_name:0 "Auto-Colonization"
+ auto_colonizer:0 "Colony Ship"

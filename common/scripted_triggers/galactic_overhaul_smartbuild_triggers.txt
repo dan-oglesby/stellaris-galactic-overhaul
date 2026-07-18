@@ -1,0 +1,172 @@
+# Smart Build eligibility checks. Mirror Ultimate Automation's auto_construct_*
+# structure - relative prev/prevprev/prevprevprev scoping resolves only when called
+# as `root = { <check> = { CHECK_SYSTEM = prev } }` from a find_closest_system trigger
+# (root = construction fleet, prev = candidate system/planet).
+
+go_smartbuild_fleet_free = {
+	$FLEET$ = {
+		NOT = { has_fleet_flag = go_smartbuild_blocked_fleet }
+	}
+}
+
+# ---- Outpost: surveyed, unclaimed, adjacent-to-us, not hostile-occupied ----
+go_smartbuild_outpost_check = {
+	$CHECK_SYSTEM$ = {
+		is_surveyed = { who = prev.owner status = yes }
+		any_neighbor_system = {
+			exists = space_owner
+			is_owned_by = prevprev.owner
+		}
+		NOR = {
+			exists = owner
+			has_star_flag = go_smartbuild_blocked_system
+			any_ship_in_system = {
+				exists = owner
+				owner = { is_hostile = prevprevprev.owner }
+			}
+		}
+	}
+}
+
+# ---- Hyper relay: our in-border system, starbase, neighbours, no relay ----
+go_smartbuild_relay_check = {
+	$CHECK_SYSTEM$ = {
+		exists = starbase
+		is_inside_border = prev.owner
+		count_neighbor_system = { count > 0 }
+		NOR = {
+			has_megastructure = hyper_relay
+			has_megastructure = hyper_relay_ruined
+			has_megastructure = hyper_relay_restored
+			has_star_flag = go_smartbuild_blocked_system
+			any_ship_in_system = {
+				exists = owner
+				OR = {
+					is_constructing = hyper_relay
+					owner = { is_hostile = prevprevprev.owner }
+				}
+			}
+		}
+	}
+}
+
+# ---- Gateway: our in-border system, starbase, no gateway ----
+go_smartbuild_gateway_check = {
+	$CHECK_SYSTEM$ = {
+		exists = starbase
+		is_inside_border = prev.owner
+		NOR = {
+			has_megastructure = gateway_0
+			has_megastructure = gateway_final
+			has_megastructure = gateway_ruined
+			has_megastructure = gateway_restored
+			has_star_flag = go_smartbuild_blocked_system
+			any_ship_in_system = {
+				exists = owner
+				OR = {
+					is_constructing = gateway_0
+					owner = { is_hostile = prevprevprev.owner }
+				}
+			}
+		}
+	}
+}
+
+# ---- Orbital ring: our in-border system with a colony we control and no ring/mega ----
+go_smartbuild_ring_check = {
+	$CHECK_SYSTEM$ = {
+		exists = starbase
+		is_inside_border = prev.owner
+		any_system_planet = {
+			is_colony = yes
+			exists = controller
+			controller = { is_same_value = prevprev.owner }
+			NOR = {
+				has_planet_flag = megastructure
+				has_planet_flag = has_megastructure
+				has_anomaly = yes
+				is_artificial = yes
+			}
+		}
+		NOT = {
+			any_ship_in_system = {
+				exists = owner
+				OR = {
+					is_constructing = orbital_ring
+					owner = { is_hostile = prevprevprev.owner }
+				}
+			}
+		}
+	}
+}
+
+# ---- Orbital ring PLANET pick: the controlled colony with no ring/mega ----
+go_smartbuild_ring_planet = {
+	$CHECK_PLANET$ = {
+		is_colony = yes
+		exists = controller
+		controller = { is_same_value = prevprev.owner }
+		NOR = {
+			has_planet_flag = megastructure
+			has_planet_flag = has_megastructure
+			has_anomaly = yes
+			is_artificial = yes
+		}
+	}
+}
+
+# ---- Habitat: our in-border system with a suitable planet and no habitat yet ----
+go_smartbuild_habitat_check = {
+	$CHECK_SYSTEM$ = {
+		exists = starbase
+		is_inside_border = prev.owner
+		NOR = {
+			has_star_flag = go_smartbuild_blocked_system
+			has_megastructure = habitat_central_complex
+			has_megastructure = habitat_central_complex_ruined
+			any_system_planet = { has_planet_flag = habitat }
+			any_ship_in_system = {
+				exists = owner
+				OR = {
+					is_constructing = habitat_central_complex
+					owner = { is_hostile = prevprevprev.owner }
+				}
+			}
+		}
+		any_system_planet = {
+			is_surveyed = { who = prevprev.owner status = yes }
+			NOR = {
+				has_planet_flag = megastructure
+				has_planet_flag = has_megastructure
+				has_anomaly = yes
+				is_asteroid = yes
+				is_moon = yes
+				is_star = yes
+				is_planet_class = pc_habitat
+				is_planet_class = pc_ringworld_habitable
+			}
+		}
+	}
+}
+
+# ---- Mining station: our in-border system with a body that has an unserviced mineral/energy deposit ----
+go_smartbuild_mining_check = {
+	$CHECK_SYSTEM$ = {
+		is_inside_border = prev.owner
+		any_system_planet = {
+			is_surveyed = { who = prevprev.owner status = yes }
+			has_deposit_for = shipclass_mining_station
+		}
+	}
+}
+
+# ---- Research station: our in-border system with a body that has an unserviced research deposit ----
+go_smartbuild_research_check = {
+	$CHECK_SYSTEM$ = {
+		is_inside_border = prev.owner
+		any_system_planet = {
+			is_surveyed = { who = prevprev.owner status = yes }
+			has_deposit_for = shipclass_research_station
+		}
+	}
+}

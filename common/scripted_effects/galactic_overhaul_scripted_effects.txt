@@ -1,0 +1,24 @@
+# Selects the Galactic Bank host = the Galactic Community member with the
+# largest trade reserves (value:galactic_overhaul_host_rating). Clears any prior host.
+# Safe to call from any scope (operates on global country lists).
+galactic_overhaul_select_host = {
+	# Remove the flag from the previous host, if any.
+	every_country = {
+		limit = { has_country_flag = galactic_overhaul_host }
+		remove_country_flag = galactic_overhaul_host
+	}
+	# Award host status to the top-rated eligible empire (position = 0 = highest).
+	ordered_country = {
+		limit = {
+			is_country_type = default
+			is_galactic_community_member = yes
+		}
+		order_by = value:galactic_overhaul_host_rating
+		position = 0
+		set_country_flag = galactic_overhaul_host
+		if = {
+			limit = { go_debug_on = yes }
+			log = "GALACTIC_OVERHAUL: bank host re-selected (highest trade reserves)"
+		}
+	}
+}

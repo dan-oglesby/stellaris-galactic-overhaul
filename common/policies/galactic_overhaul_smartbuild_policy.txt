@@ -1,0 +1,32 @@
+# "Smart Build" policy - empire-wide construction-ship automation toggle.
+# When On, the empire's construction ships (is_ship_size = constructor) are enrolled:
+# they roam to eligible systems and auto-build. Phase 1 = outposts.
+# NOTE: overlaps Ultimate Automation - disable UA's construction automation when using this.
+smart_build = {
+	potential = {
+		is_country_type = default
+	}
+
+	allow = {
+		always = yes
+	}
+
+	option = {
+		name = "go_sb_off"
+		icon = "GFX_diplomatic_stance_withdrawn"
+		ai_weight = {
+			weight = 100	# AI keeps vanilla/UA behaviour by default
+		}
+	}
+
+	option = {
+		name = "go_sb_on"
+		icon = "GFX_diplomatic_stance_expansionist"
+		policy_flags = {
+			go_smartbuild_active
+		}
+		ai_weight = {
+			weight = 0
+		}
+	}
+}

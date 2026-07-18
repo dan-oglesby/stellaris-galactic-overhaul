@@ -1,0 +1,119 @@
+namespace = galactic_overhaul_stock
+
+# ============================================================================
+# galactic_overhaul_stock.1 - Monthly stock-market tick (on_monthly_pulse_country).
+# 1) Share price = the galactic market index (go_compute_share_price).
+# 2) Auto-invest a slice of surplus trade into Galactic Shares.
+# 3) Pay dividends on holdings - reinvested (DRIP) or paid out as trade.
+# Constants in common/scripted_variables/galactic_overhaul_stock_variables.txt.
+# Debug tag: GALACTIC_OVERHAUL_STOCK.
+# ============================================================================
+country_event = {
+	id = galactic_overhaul_stock.1
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		has_policy_flag = go_investment_active
+	}
+
+	immediate = {
+		# ---- 1. Share price = live galactic market index ----
+		go_compute_share_price = yes
+
+		# ---- 2. Auto-invest surplus trade (above the operating floor) ----
+		export_resource_stockpile_to_variable = { resource = trade variable = go_st_trade }
+		set_variable = { which = go_st_invest value = go_st_trade }
+		subtract_variable = { which = go_st_invest value = @go_invest_floor }
+		if = {
+			limit = { check_variable = { which = go_st_invest value > 0 } }
+			multiply_variable = { which = go_st_invest value = @go_invest_frac }
+			if = {
+				limit = { check_variable = { which = go_st_invest value > @go_invest_max_per_month } }
+				set_variable = { which = go_st_invest value = @go_invest_max_per_month }
+			}
+			# shares bought = invest / price
+			set_variable = { which = go_st_buy value = go_st_invest }
+			divide_variable = { which = go_st_buy value = go_share_price }
+			add_resource = { trade = -1 mult = go_st_invest }
+			add_resource = { go_shares = 1 mult = go_st_buy }
+		}
+		else = {
+			set_variable = { which = go_st_invest value = 0 }
+		}
+
+		# ---- 3. Dividends on holdings, with a DIMINISHING (tapered) yield ----
+		# effyield = base_yield * (1 - min(held/soft_cap, taper_floor)). As holdings
+		# approach the soft cap the yield falls toward 20% of base, so DRIP growth
+		# becomes logistic (bounded) instead of exponential - fixing the runaway.
+		export_resource_stockpile_to_variable = { resource = go_shares variable = go_st_held }
+		set_variable = { which = go_st_taper value = go_st_held }
+		divide_variable = { which = go_st_taper value = @go_shares_soft_cap }
+		if = {
+			limit = { check_variable = { which = go_st_taper value > @go_div_taper_floor } }
+			set_variable = { which = go_st_taper value = @go_div_taper_floor }
+		}
+		multiply_variable = { which = go_st_taper value = -1 }
+		change_variable = { which = go_st_taper value = 1 }
+		set_variable = { which = go_st_effyield value = @go_div_yield }
+		multiply_variable = { which = go_st_effyield value = go_st_taper }
+		# dividend = held * price * effyield
+		set_variable = { which = go_st_div value = go_st_held }
+		multiply_variable = { which = go_st_div value = go_share_price }
+		multiply_variable = { which = go_st_div value = go_st_effyield }
+		if = {
+			limit = { check_variable = { which = go_st_div value > 0 } }
+			if = {
+				limit = { has_policy_flag = go_investment_drip }
+				set_variable = { which = go_st_redrip value = go_st_div }
+				divide_variable = { which = go_st_redrip value = go_share_price }
+				add_resource = { go_shares = 1 mult = go_st_redrip }
+			}
+			else = {
+				add_resource = { trade = 1 mult = go_st_div }
+			}
+		}
+
+		# ---- 3b. Monthly management fee = portfolio value * fee_frac (trade sink) ----
+		set_variable = { which = go_st_fee value = go_st_held }
+		multiply_variable = { which = go_st_fee value = go_share_price }
+		multiply_variable = { which = go_st_fee value = @go_stock_fee_frac }
+		if = {
+			limit = { check_variable = { which = go_st_fee value > 0 } }
+			add_resource = { trade = -1 mult = go_st_fee }
+		}
+
+		# ---- 3c. Crash risk: ~3%/mo chance of losing a chunk of the portfolio ----
+		if = {
+			limit = { check_variable = { which = go_st_held value > 0 } }
+			random_list = {
+				97 = { }
+				3 = {
+					set_variable = { which = go_st_crash value = go_st_held }
+					multiply_variable = { which = go_st_crash value = @go_stock_crash_frac }
+					add_resource = { go_shares = -1 mult = go_st_crash }
+					if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_STOCK: [This.GetName] CRASH -[This.go_st_crash] shares" }
+				}
+			}
+		}
+
+		# ---- 4. Persist + debug ----
+		set_variable = { which = go_last_share_price value = go_share_price }
+		if = {
+			limit = { go_debug_on = yes }
+			log = "GALACTIC_OVERHAUL_STOCK: [This.GetName] price=[This.go_share_price] held=[This.go_st_held] invested=[This.go_st_invest] dividend=[This.go_st_div]"
+		}
+
+		clear_variable = go_st_trade
+		clear_variable = go_st_invest
+		clear_variable = go_st_buy
+		clear_variable = go_st_held
+		clear_variable = go_st_div
+		clear_variable = go_st_redrip
+		clear_variable = go_st_taper
+		clear_variable = go_st_effyield
+		clear_variable = go_st_fee
+		clear_variable = go_st_crash
+		clear_variable = go_share_price
+	}
+}

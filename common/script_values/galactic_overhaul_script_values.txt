@@ -1,0 +1,14 @@
+# Host rating for the Galactic Bank: an empire's current energy reserves.
+# The eligible Galactic Community member with the highest value is named host.
+# (Mirrors how the Galactic Market host is chosen by a rating. Swap the resource
+# or add terms here to redefine what "strongest energy economy" means.)
+galactic_overhaul_host_rating = {
+	base = 0
+	complex_trigger_modifier = {
+		trigger = resource_stockpile_compare
+		parameters = {
+			resource = trade
+		}
+		mode = add
+	}
+}

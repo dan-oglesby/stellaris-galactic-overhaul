@@ -1,0 +1,29 @@
+# ============================================================================
+# Treasury Automation - tunable constants (cap/income-aware trading)
+# ============================================================================
+# SELL a resource when it's wasting: stockpile >= cap * @go_trade_sell_cap_frac
+#   AND income > 0, selling down to cap * @go_trade_sell_keep_frac.
+# BUY a resource when it's being lost: income < 0 AND stockpile <= @go_trade_buy_floor,
+#   buying as much as the spare energy affords at market price.
+
+@go_trade_sell_cap_frac   = 0.95    # "near cap": sell once stockpile reaches this fraction of the cap
+@go_trade_sell_keep_frac  = 0.80    # sell the surplus down to this fraction of the cap
+@go_trade_buy_floor       = 500     # "near zero": buy once a losing resource drops to/below this
+@go_trade_max_per_month   = 1000    # max units traded per resource per month (rate limit)
+@go_trade_energy_floor    = 2000    # never spend energy below this reserve when buying
+
+# Simulated market spread/fee.
+@go_trade_buy_feemult     = 1.3
+@go_trade_sell_feemult    = 0.7
+
+# Price impact: accumulated trade pressure shifts the effective price against us.
+@go_trade_impact_coef     = 0.0005
+@go_trade_pressure_decay  = 0.8
+
+# --- Opportunistic desk: buy-low/sell-high vs a per-resource price EMA, + a monthly fee ---
+@go_opp_alpha          = 0.1     # EMA smoothing for the reference price
+@go_opp_buy_mult       = 0.9     # buy when price < this * mean (cheap)
+@go_opp_sell_mult      = 1.1     # sell when price > this * mean (dear)
+@go_opp_max_per_month  = 1000    # max units per resource per month (opportunistic)
+@go_opp_sell_floor     = 1000    # keep at least this many units when opportunistic-selling
+@go_opp_fee_neg        = -200    # monthly desk management fee (trade), reflecting investing costs

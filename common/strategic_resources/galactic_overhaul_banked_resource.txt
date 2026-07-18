@@ -1,0 +1,9 @@
+# "Banked Credits" - the trade held on deposit in the Galactic Bank.
+# A stored, NON-tradable resource (no market_amount/market_price) with an
+# effectively unlimited cap = the "lifted storage" the bank provides.
+# Deposit/withdraw move trade <-> go_banked_credits; interest accrues here.
+go_banked_credits = {
+	tradable = no
+	category = advanced
+	max = 100000000
+}

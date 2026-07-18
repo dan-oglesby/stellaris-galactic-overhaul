@@ -1,0 +1,9 @@
+# Auto-colonization eligibility check.
+# NOTE: `species_coloniseable_planet` (used by Ultimate Automation) is a UA-defined
+# trigger, NOT vanilla - relying on it broke colonization when UA wasn't the definer.
+# This uses the real vanilla primitive `colonizable_planet`.
+go_coloniseable_planet = {
+	is_colony = no
+	has_anomaly = no
+	colonizable_planet = yes
+}

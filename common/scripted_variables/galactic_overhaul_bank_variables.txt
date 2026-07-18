@@ -1,0 +1,8 @@
+# Galactic Bank - deposit/withdraw automation bands (operates on the TRADE stockpile).
+# When Galactic Banking is active, the bank auto-manages your trade:
+#   - deposits the surplus into Banked Credits when trade nears its cap, and
+#   - withdraws from Banked Credits to refill trade when it runs low.
+@go_bank_deposit_frac   = 0.9    # deposit when trade stockpile >= cap * this
+@go_bank_target_frac    = 0.6    # ...depositing the excess down to cap * this
+@go_bank_withdraw_floor = 2000   # withdraw when trade stockpile <= this
+@go_bank_refill_target  = 5000   # ...withdrawing from the bank to bring trade up to this

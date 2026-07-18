@@ -1,0 +1,10 @@
+# ============================================================================
+# Taxation Doctrine - tunable constants
+# ============================================================================
+# An automated revenue service taxes private commerce (the empire's trade value)
+# and drifts the tax rate toward the chosen stance's target each month.
+
+@go_tax_min      = 0.05   # lower bound  (Laissez-Faire target)
+@go_tax_max      = 0.50   # upper bound  (Heavy Taxation target)
+@go_tax_balanced = 0.25   # Balanced Levy target
+@go_tax_step     = 0.02   # how far the rate moves toward its target each month

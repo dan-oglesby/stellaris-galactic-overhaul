@@ -1,0 +1,50 @@
+# ============================================================================
+# Smart Build - tunable constants
+# ============================================================================
+# Megastructure costs & build times are the ACTUAL vanilla values (read from
+# common/megastructures/*). spawn_megastructure is a magic spawn that doesn't
+# charge anything, so we deduct the real cost manually after the build delay.
+# (If a future patch changes vanilla costs, update these to match.)
+
+# ---- Roaming framework ----
+@go_sb_system_block_time   = 1080
+@go_sb_retry_days          = 30
+
+# ---- Outposts (starbase outpost - approx vanilla base claim cost) ----
+@go_sb_outpost_influence      = 75
+@go_sb_outpost_influence_neg  = -75
+@go_sb_outpost_alloys         = 100
+@go_sb_outpost_alloys_neg     = -100
+@go_sb_outpost_build_time     = 360
+
+# ---- Hyper relay (vanilla: 500 alloys, 25 influence, 360 days) ----
+@go_sb_relay_alloys        = 500
+@go_sb_relay_alloys_neg    = -500
+@go_sb_relay_influence     = 25
+@go_sb_relay_influence_neg = -25
+@go_sb_relay_build_time    = 360
+
+# ---- Gateway (vanilla: 2500 alloys, 75 influence, 1080 days) ----
+@go_sb_gateway_alloys      = 2500
+@go_sb_gateway_alloys_neg  = -2500
+@go_sb_gateway_influence   = 75
+@go_sb_gateway_influence_neg = -75
+@go_sb_gateway_build_time  = 1080
+
+# ---- Orbital ring (vanilla: @starhold_cost=1000 alloys, 50 influence, 720 days) ----
+@go_sb_ring_alloys         = 1000
+@go_sb_ring_alloys_neg     = -1000
+@go_sb_ring_influence      = 50
+@go_sb_ring_influence_neg  = -50
+@go_sb_ring_build_time     = 720
+
+# ---- Habitat (vanilla: 1500 alloys, 200 influence, 1800 days) ----
+@go_sb_habitat_alloys      = 1500
+@go_sb_habitat_alloys_neg  = -1500
+@go_sb_habitat_influence   = 200
+@go_sb_habitat_influence_neg = -200
+@go_sb_habitat_build_time  = 1800
+
+# ---- Mining / research stations (instant build; alloy cost approximate, tune to taste) ----
+@go_sb_station_alloys      = 100
+@go_sb_station_alloys_neg  = -100

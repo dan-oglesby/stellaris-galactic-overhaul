@@ -1,0 +1,32 @@
+# Debug toggle for ALL Galactic Bank logging. Logging is ON BY DEFAULT; this decision
+# sets/clears the go_debug_off global flag to silence or re-enable it (read by the
+# go_debug_on scripted trigger). Covers interest, trading, tax, and smart-build logs.
+decision_galactic_overhaul_debug = {
+	icon = decision_resources
+
+	# NOTE: is_ai is wrong-scope inside decision potential in 4.4, so we don't gate on it.
+	# The decision is harmless for AI (ai_weight = 0) and player-facing for you.
+	potential = {
+		always = yes
+	}
+
+	allow = {
+		always = yes
+	}
+
+	effect = {
+		if = {
+			limit = { has_global_flag = go_debug_off }
+			remove_global_flag = go_debug_off
+			custom_tooltip = decision_galactic_overhaul_debug_on
+		}
+		else = {
+			set_global_flag = go_debug_off
+			custom_tooltip = decision_galactic_overhaul_debug_off
+		}
+	}
+
+	ai_weight = {
+		weight = 0
+	}
+}

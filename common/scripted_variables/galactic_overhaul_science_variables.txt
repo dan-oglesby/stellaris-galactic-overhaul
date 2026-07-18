@@ -1,0 +1,6 @@
+# Science Automation - constants.
+# NOTE: the engine exposes no "idle/unassigned leader" trigger, so (like Ultimate
+# Automation) we RECRUIT a scientist to crew a leaderless science ship rather than
+# reassigning an existing idle one. The ceiling below is a runaway guard.
+@go_sci_leader_cap = 20   # don't auto-recruit if the country already has >= this many leaders
+@go_sci_skill      = 2    # starting skill of an auto-recruited scientist

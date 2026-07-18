@@ -1,0 +1,44 @@
+# Galactic Bank - "Auto-Colonization" policy
+# -------------------------------------------------------------------
+# Off / On toggle. When On, sets policy flag go_autocolony_active, which the
+# monthly colonization driver (galactic_overhaul_colony.2) checks. Available to all
+# regular empires (incl. hive / machine - the cost logic handles each authority).
+#
+# NOTE on "default to the planetary governor": there is NO script effect to turn
+# on per-planet automation (verified). New colonies get auto-managed via the
+# empire-wide "Auto-Manage New Colonies" setting - enable that once and every
+# colony this founds is governed automatically. The debug log's automation-proxy
+# check (galactic_overhaul_colony.4) reports whether that hand-off is working.
+
+auto_colonization = {
+	potential = {
+		is_country_type = default
+	}
+
+	allow = {
+		always = yes
+	}
+
+	# Default option (listed first) - automation disabled.
+	option = {
+		name = "go_col_off"
+		icon = "GFX_diplomatic_stance_withdrawn"
+
+		ai_weight = {
+			weight = 100	# AI empires stay on vanilla behaviour by default.
+		}
+	}
+
+	option = {
+		name = "go_col_on"
+		icon = "GFX_diplomatic_stance_expansionist"
+
+		policy_flags = {
+			go_autocolony_active
+		}
+
+		ai_weight = {
+			weight = 0
+		}
+	}
+}

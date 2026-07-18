@@ -1,0 +1,32 @@
+# Galactic Overhaul - "Science Automation" policy.
+# When on, any science ship lacking a scientist gets one assigned each month
+# (recruited as needed, up to a leader-count ceiling). Pairs with the vanilla
+# auto-explore order so survey ships keep working hands-off.
+science_automation = {
+	potential = {
+		is_country_type = default
+	}
+
+	allow = {
+		always = yes
+	}
+
+	option = {
+		name = "go_sci_off"
+		icon = "GFX_diplomatic_stance_withdrawn"
+		ai_weight = {
+			weight = 100
+		}
+	}
+
+	option = {
+		name = "go_sci_on"
+		icon = "GFX_diplomatic_stance_mercantile"
+		policy_flags = {
+			go_science_active
+		}
+		ai_weight = {
+			weight = 0
+		}
+	}
+}

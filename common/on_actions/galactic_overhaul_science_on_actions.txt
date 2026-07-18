@@ -1,0 +1,6 @@
+# Science automation monthly tick (merges additively into the monthly pulse).
+on_monthly_pulse_country = {
+	events = {
+		galactic_overhaul_science.1
+	}
+}

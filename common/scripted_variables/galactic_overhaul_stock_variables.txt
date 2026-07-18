@@ -1,0 +1,12 @@
+# Galactic Stock Market - tuning constants.
+@go_share_price_floor    = 0.1     # price floor guard (vs a zero/negative market read)
+@go_invest_floor         = 5000    # only auto-invest TRADE held above this (keep operating cash)
+@go_invest_frac          = 0.25    # ...investing this fraction of the surplus each month
+@go_invest_max_per_month = 2000    # cap on monthly auto-investment
+@go_div_yield            = 0.01    # monthly dividend = holdings value * this (~12.7%/yr)
+
+# --- Rebalance: diminishing returns + fees + crash risk (bounds the DRIP runaway) ---
+@go_shares_soft_cap  = 1000000  # dividend yield tapers toward zero as holdings approach this (logistic bound on DRIP)
+@go_div_taper_floor  = 0.80     # cap the taper: yield never drops below (1 - this) = 20% of base (so payout still earns)
+@go_stock_fee_frac   = 0.002    # monthly management fee = portfolio value * this (trade sink)
+@go_stock_crash_frac = 0.25     # a market crash removes this fraction of shares (~3% monthly chance)

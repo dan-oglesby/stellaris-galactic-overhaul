@@ -1,0 +1,83 @@
+# "Charter the Galactic Bank" - a one-time Galactic Community vote that founds the
+# bank galaxy-wide. On passage it sets the galactic_overhaul_chartered global flag
+# (which unlocks the Galactic Banking policy for Community members) and names the
+# initial host empire by energy reserves.
+
+resolution_galactic_overhaul_charter = {
+	icon = "GFX_resolution_galactic_market"
+
+	resources = {
+		category = resolutions
+		cost = {
+			influence = 150
+		}
+	}
+
+	target = no
+	fire_and_forget = yes
+
+	effect = {
+		custom_tooltip = resolution_galactic_overhaul_charter_effect
+		hidden_effect = {
+			set_global_flag = galactic_overhaul_chartered
+			galactic_overhaul_select_host = yes
+			if = {
+				limit = { go_debug_on = yes }
+				log = "GALACTIC_OVERHAUL: charter PASSED - bank founded galaxy-wide, initial host named"
+			}
+		}
+	}
+
+	# Only proposable while the bank has not yet been chartered.
+	potential = {
+		NOT = { has_global_flag = galactic_overhaul_chartered }
+	}
+
+	allow = {
+		always = yes
+	}
+
+	ai_weight = {
+		base = 10
+	}
+}
+
+# "Re-evaluate Galactic Bank Host" - a REPEATABLE Galactic Community vote that
+# re-runs host selection (names the member with the largest trade reserves).
+resolution_galactic_overhaul_rehost = {
+	icon = "GFX_resolution_galactic_market"
+
+	resources = {
+		category = resolutions
+		cost = {
+			influence = 75
+		}
+	}
+
+	target = no
+	fire_and_forget = yes
+
+	effect = {
+		custom_tooltip = resolution_galactic_overhaul_rehost_effect
+		hidden_effect = {
+			galactic_overhaul_select_host = yes
+			if = {
+				limit = { go_debug_on = yes }
+				log = "GALACTIC_OVERHAUL: rehost resolution PASSED - bank host re-evaluated"
+			}
+		}
+	}
+
+	# Only proposable once the bank exists.
+	potential = {
+		has_global_flag = galactic_overhaul_chartered
+	}
+
+	allow = {
+		always = yes
+	}
+
+	ai_weight = {
+		base = 5
+	}
+}

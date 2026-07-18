@@ -1,0 +1,10 @@
+﻿l_english:
+ policy_science_automation:0 "Science Automation"
+ policy_science_automation_desc:0 "Whether science ships are crewed automatically. When active, any science ship missing a scientist has one assigned each month (recruited as needed, up to a leader ceiling). Paired with the auto-explore order, your survey fleet keeps working without micromanagement."
+ science_automation:0 "Science Automation"
+ science_automation_desc:0 "Automatically assign scientists to science ships that lack one."
+ go_sci_off:0 "Manual Crewing"
+ go_sci_off_desc:0 "You assign scientists to science ships by hand. No automation."
+ go_sci_on:0 "Automated Science Corps"
+ go_sci_on_desc:0 "Each month, any science ship without a scientist is automatically crewed - a scientist is recruited and assigned, up to a leader-count ceiling (tunable). Combine with the vanilla auto-explore order to keep surveying hands-free.\n\nNote: the engine offers no way to detect an existing idle scientist, so a fresh one is recruited to fill each gap."
+ go_science_active_name:0 "Science Automation"

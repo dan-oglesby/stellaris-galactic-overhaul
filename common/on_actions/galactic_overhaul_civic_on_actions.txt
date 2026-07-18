@@ -1,0 +1,14 @@
+# Megacorp founding civics: check at game start AND monthly (so reform-adoption
+# also triggers it). The .1 event's founded-flag guards make it idempotent.
+on_game_start_country = {
+	events = {
+		galactic_overhaul_civic.1
+		galactic_overhaul_civic.4
+	}
+}
+
+on_monthly_pulse_country = {
+	events = {
+		galactic_overhaul_civic.1
+	}
+}

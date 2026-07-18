@@ -1,0 +1,46 @@
+# ============================================================================
+# Galactic Bank - galactic market dynamics control panel (defines override)
+# ============================================================================
+# Overrides specific NEconomy market-price defines. Only the keys listed here
+# change; every other NEconomy define keeps its vanilla value.
+#
+# SCOPE / CAVEATS:
+#  - This affects the REAL galactic (and internal) market for ALL empires and
+#    ALL resources. It is a galaxy-wide change, NOT bank-only.
+#  - It changes the game checksum (achievements already off with mods; in
+#    multiplayer EVERY player must run this mod).
+#  - It feeds back into the bank: bigger swings / a wider band = more "activity"
+#    for the bank's interest, faster reversion = activity fades quicker.
+#
+# These ARE the engine levers behind "prices mean-revert within a bounded,
+# noisy band." There is no script effect to write the market price directly, so
+# this is the supported way to shape that behaviour. (A truly demand-SHIFTED
+# base is not possible - the base price is fixed - but sustained real trading
+# already holds prices elevated toward the cap until trading stops.)
+# ============================================================================
+NEconomy = {
+
+	# --- Mean reversion: the "private operators" pulling price back to base ---
+	# Days for a maxed-out price to decay all the way back to base price.
+	# LOWER  = snappier normalization (operators correct mispricing faster).
+	# HIGHER = demand-driven highs/lows persist longer before normalizing.
+	# Vanilla: 1800 (~5 years).  [kept at vanilla - already a long-term reversion]
+	MARKET_DAYS_TO_BASE_PRICE = 1800
+
+	# --- Day-to-day volatility: how far each trade moves the price ---
+	# HIGHER = prices swing more from ambient buying/selling (more fluctuation).
+	# Vanilla: 1 (above base) / 0.3 (below base).  [raised for livelier prices]
+	MARKET_FLUCTUATION_ABOVE_BASE_PRICE = 1.25
+	MARKET_FLUCTUATION_BELOW_BASE_PRICE = 0.4
+
+	# --- The price band: hard bounds on how far price may stray from base ---
+	# Percent of base price. MIN = floor (lower bound), MAX = ceiling (the
+	# "higher stabilized demand" cap). Widen these for more dramatic extremes.
+	# Vanilla: -80 / 400.  [kept at vanilla]
+	MARKET_MIN_FLUCTUATION_FROM_BASE_PRICE = -80
+	MARKET_MAX_FLUCTUATION_FROM_BASE_PRICE = 400
+
+	# Snap fluctuation to zero when |fluctuation| < this (lets tiny wobble settle).
+	# Vanilla: 0.3.
+	MARKET_FLUCTUATION_EPSILON = 0.3
+}

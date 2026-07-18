@@ -1,0 +1,10 @@
+# "Galactic Shares" - holdings in the galactic stock market.
+# A stored, NON-tradable resource = the QUANTITY of shares held. Their VALUE is
+# go_shares * go_share_price (the live market index), so the value swings with
+# the market. Bought via auto-invest, grown by dividends (DRIP), cashed out via
+# the Liquidate decision.
+go_shares = {
+	tradable = no
+	category = advanced
+	max = 100000000
+}

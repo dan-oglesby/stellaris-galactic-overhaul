@@ -1,0 +1,88 @@
+# Galactic Bank - "Galactic Banking" treasury policy
+# -------------------------------------------------------------------
+# Adds a new policy with an Off option plus three reserve tiers.
+# Each active tier:
+#   1. raises the ENERGY CREDIT storage cap (country_resource_max_trade_add)
+#   2. sets policy flags so the monthly interest event (galactic_overhaul.1)
+#      knows the bank is active and at which interest rate.
+#
+# This is a NEW policy key, so it does not override anything in vanilla.
+# Tunable knobs: the country_resource_max_trade_add values below, and the
+# interest percentages in events/galactic_overhaul_events.txt.
+
+galactic_overhaul_banking = {
+	# Only available once the Galactic Bank has been chartered by the Community,
+	# and only to Community members (the bank is a galactic institution).
+	potential = {
+		is_country_type = default
+		has_global_flag = galactic_overhaul_chartered
+	}
+
+	allow = {
+		always = yes
+	}
+
+	# Default option (listed first) - bank disabled.
+	option = {
+		name = "go_off"
+		icon = "GFX_diplomatic_stance_withdrawn"
+
+		ai_weight = {
+			weight = 100	# AI empires stay on vanilla behaviour by default.
+		}
+	}
+
+	option = {
+		name = "go_conservative"
+		icon = "GFX_diplomatic_stance_mercantile"
+
+		policy_flags = {
+			galactic_overhaul_active
+			galactic_overhaul_tier_conservative
+		}
+
+		modifier = {
+			country_resource_max_trade_add = 25000
+		}
+
+		ai_weight = {
+			weight = 0
+		}
+	}
+
+	option = {
+		name = "go_standard"
+		icon = "GFX_diplomatic_stance_mercantile"
+
+		policy_flags = {
+			galactic_overhaul_active
+			galactic_overhaul_tier_standard
+		}
+
+		modifier = {
+			country_resource_max_trade_add = 50000
+		}
+
+		ai_weight = {
+			weight = 0
+		}
+	}
+
+	option = {
+		name = "go_aggressive"
+		icon = "GFX_diplomatic_stance_mercantile"
+
+		policy_flags = {
+			galactic_overhaul_active
+			galactic_overhaul_tier_aggressive
+		}
+
+		modifier = {
+			country_resource_max_trade_add = 100000
+		}
+
+		ai_weight = {
+			weight = 0
+		}
+	}
+}

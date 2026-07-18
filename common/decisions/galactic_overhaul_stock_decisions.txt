@@ -1,0 +1,44 @@
+# "Liquidate Holdings" - sell ALL Galactic Shares at the current market price,
+# converting them back to trade. The cash-out / take-profit valve for the
+# otherwise hands-off (auto-invest + DRIP) stock market.
+#
+# Decisions are PLANET-scoped (this = planet), so country triggers/effects must
+# be wrapped in owner = { }. owned_planets_only + is_capital makes it appear once,
+# on the empire capital, rather than on every planet.
+decision_go_liquidate_stocks = {
+	owned_planets_only = yes
+
+	potential = {
+		is_capital = yes
+		owner = {
+			has_policy_flag = go_investment_active
+			resource_stockpile_compare = { resource = go_shares value > 0 }
+		}
+	}
+
+	allow = {
+		always = yes
+	}
+
+	effect = {
+		owner = {
+			go_compute_share_price = yes
+			export_resource_stockpile_to_variable = { resource = go_shares variable = go_st_held }
+			set_variable = { which = go_st_div value = go_st_held }
+			multiply_variable = { which = go_st_div value = go_share_price }
+			add_resource = { trade = 1 mult = go_st_div }
+			add_resource = { go_shares = -1 mult = go_st_held }
+			if = {
+				limit = { go_debug_on = yes }
+				log = "GALACTIC_OVERHAUL_STOCK: [This.GetName] LIQUIDATED [This.go_st_held] shares for [This.go_st_div] trade"
+			}
+			clear_variable = go_st_held
+			clear_variable = go_st_div
+			clear_variable = go_share_price
+		}
+	}
+
+	ai_weight = {
+		weight = 0
+	}
+}

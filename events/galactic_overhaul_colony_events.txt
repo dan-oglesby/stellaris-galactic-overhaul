@@ -1,0 +1,291 @@
+namespace = galactic_overhaul_colony
+
+# ============================================================================
+# Auto-Colonization. Mirrors Ultimate Automation's lazy_col pattern, adapted to
+# the Galactic Bank's conventions (policy toggle + always-on debug logging).
+#
+#   .2  brain   - monthly: find a colonisable in-border planet we can afford,
+#                 then either dispatch an idle colony ship or pay to build one.
+#   .3  build   - after a build delay, spawn the colony ship at the capital.
+#   .1  driver  - fleet event: roam the colony ship to a colonisable planet and
+#                 start the colony, then delete the ship.
+#   .4  proxy   - planet event: after founding, log the colony's build activity
+#                 as an automation proxy (we cannot read the auto-manage toggle
+#                 directly, so "is it building on its own?" stands in for it).
+#
+# Debug: lines tagged GALACTIC_OVERHAUL_COLONY (always on unless go_debug_off set).
+# ============================================================================
+
+# ----------------------------------------------------------------------------
+# .2 - Monthly colonization brain (on_monthly_pulse_country).
+# ----------------------------------------------------------------------------
+country_event = {
+	id = galactic_overhaul_colony.2
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		has_policy_flag = go_autocolony_active
+	}
+
+	immediate = {
+		random_planet_within_border = {
+			limit = {
+				go_coloniseable_planet = yes
+				NOR = {
+					has_planet_flag = go_colony_target
+					has_modifier = "holy_planet"
+				}
+				# Affordability of the colony ship, by the owner's authority.
+				prev = {
+					if = {
+						limit = { has_authority = auth_hive_mind }
+						resource_stockpile_compare = { resource = alloys value >= @go_col_cost_hive_alloys }
+						resource_stockpile_compare = { resource = food value >= @go_col_cost_hive_food }
+					}
+					else_if = {
+						limit = { has_authority = auth_machine_intelligence }
+						resource_stockpile_compare = { resource = alloys value >= @go_col_cost_mach_alloys }
+					}
+					else = {
+						resource_stockpile_compare = { resource = consumer_goods value >= @go_col_cost_norm_cg }
+						resource_stockpile_compare = { resource = alloys value >= @go_col_cost_norm_alloys }
+						resource_stockpile_compare = { resource = food value >= @go_col_cost_norm_food }
+					}
+				}
+			}
+			# Reserve this target so it is not re-picked while a ship is en route.
+			set_timed_planet_flag = { flag = go_colony_target days = @go_col_target_reserve_days }
+			if = {
+				limit = { go_debug_on = yes }
+				log = "GALACTIC_OVERHAUL_COLONY: [Root.GetName] target picked: [This.GetName]"
+			}
+
+			# Prefer an existing idle colony ship; otherwise build one.
+			if = {
+				limit = {
+					root = {
+						count_owned_fleet = {
+							limit = {
+								is_ship_size = colonizer
+								NOT = { has_fleet_flag = go_colony_ship }
+							}
+							count > 0
+						}
+					}
+				}
+				root = {
+					random_owned_fleet = {
+						limit = {
+							is_ship_size = colonizer
+							NOT = { has_fleet_flag = go_colony_ship }
+						}
+						set_timed_fleet_flag = { flag = go_colony_ship days = @go_col_build_days }
+						fleet_event = { id = galactic_overhaul_colony.1 }
+					}
+					if = {
+						limit = { go_debug_on = yes }
+						log = "GALACTIC_OVERHAUL_COLONY: [Root.GetName] dispatched an idle colony ship"
+					}
+				}
+			}
+			else = {
+				root = {
+					if = {
+						limit = { has_authority = auth_hive_mind }
+						add_resource = { alloys = @go_col_cost_hive_alloys_neg food = @go_col_cost_hive_food_neg }
+					}
+					else_if = {
+						limit = { has_authority = auth_machine_intelligence }
+						add_resource = { alloys = @go_col_cost_mach_alloys_neg }
+					}
+					else = {
+						add_resource = { consumer_goods = @go_col_cost_norm_cg_neg alloys = @go_col_cost_norm_alloys_neg food = @go_col_cost_norm_food_neg }
+					}
+					country_event = { id = galactic_overhaul_colony.3 days = @go_col_build_days }
+					if = {
+						limit = { go_debug_on = yes }
+						log = "GALACTIC_OVERHAUL_COLONY: [Root.GetName] paid for a colony ship, building (delay)"
+					}
+				}
+			}
+		}
+	}
+}
+
+# ----------------------------------------------------------------------------
+# .3 - Build the colony ship at the capital after the build delay.
+# ----------------------------------------------------------------------------
+country_event = {
+	id = galactic_overhaul_colony.3
+	hide_window = yes
+	is_triggered_only = yes
+
+	immediate = {
+		create_fleet = {
+			effect = {
+				set_owner = prev
+				create_ship = {
+					name = "auto_colonizer"
+					random_existing_design = colonizer
+				}
+				set_timed_fleet_flag = { flag = go_colony_ship days = @go_col_build_days }
+				set_fleet_stance = evasive
+				set_location = prev.capital_star
+				fleet_event = { id = galactic_overhaul_colony.1 }
+			}
+		}
+		if = {
+			limit = { go_debug_on = yes }
+			log = "GALACTIC_OVERHAUL_COLONY: [This.GetName] colony ship built at capital"
+		}
+	}
+}
+
+# ----------------------------------------------------------------------------
+# .1 - Roaming driver: move the colony ship to a colonisable planet and found it.
+# root = the colony-ship fleet. is_owned_by = root.owner is the simple
+# (owned-system) scoping case, which works inline (unlike the outpost case).
+# Every nested trigger/effect/failed block carries a unique id + non-empty body.
+# ----------------------------------------------------------------------------
+fleet_event = {
+	id = galactic_overhaul_colony.1
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		has_fleet_flag = go_colony_ship
+	}
+
+	immediate = {
+		set_timed_fleet_flag = { flag = go_colony_ship days = @go_col_build_days }
+		clear_orders = yes
+		clear_fleet_actions = this
+		if = {
+			limit = { go_debug_on = yes }
+			log = "GALACTIC_OVERHAUL_COLONY: [This.GetName] colony ship roaming for a target"
+		}
+		queue_actions = {
+			repeat = {
+				find_closest_system = {
+					trigger = {
+						id = go_colony_find_system
+						is_owned_by = root.owner
+						is_surveyed = { who = root.owner status = yes }
+						any_system_planet = {
+							go_coloniseable_planet = yes
+							NOT = { has_modifier = "holy_planet" }
+						}
+					}
+					found_system = {
+						effect = {
+							id = go_colony_sys_reached
+							if = {
+								limit = { go_debug_on = yes }
+								log = "GALACTIC_OVERHAUL_COLONY: colony ship arriving at a target system"
+							}
+						}
+						move_to = this
+						find_closest_planet = {
+							trigger = {
+								id = go_colony_find_planet
+								go_coloniseable_planet = yes
+								NOT = { has_modifier = "holy_planet" }
+							}
+							found_planet = {
+								orbit_planet = this
+								effect = {
+									id = go_colony_do_found
+									if = {
+										limit = { go_coloniseable_planet = yes }
+										start_colony = {
+											owner = root.owner
+											species = root.owner.owner_main_species
+										}
+										set_planet_flag = go_colony_founded
+										planet_event = { id = galactic_overhaul_colony.4 days = @go_col_proxy_check_days }
+										if = {
+											limit = { go_debug_on = yes }
+											log = "GALACTIC_OVERHAUL_COLONY: FOUNDED colony on [This.GetName]"
+										}
+										root = { delete_fleet = this }
+									}
+									else = {
+										if = {
+											limit = { go_debug_on = yes }
+											log = "GALACTIC_OVERHAUL_COLONY: target no longer colonisable on arrival, abort"
+										}
+									}
+								}
+							}
+							failed = {
+								effect = {
+									id = go_colony_planet_failed
+									if = {
+										limit = { go_debug_on = yes }
+										log = "GALACTIC_OVERHAUL_COLONY: no colonisable planet in reached system (retry)"
+									}
+								}
+							}
+						}
+					}
+					failed = {
+						effect = {
+							id = go_colony_sys_failed
+							if = {
+								limit = { go_debug_on = yes }
+								log = "GALACTIC_OVERHAUL_COLONY: no colonisable system found yet (idle)"
+							}
+						}
+					}
+				}
+				wait = { duration = 30 }
+			}
+		}
+	}
+}
+
+# ----------------------------------------------------------------------------
+# .4 - Automation proxy check (debug). We cannot read a planet's auto-manage
+# state directly, so this stands in: a colony we never touch that is building
+# or has grown its districts => the governor / auto-manage is engaged. Re-fires
+# up to 3 times to avoid a single misleading snapshot.
+# ----------------------------------------------------------------------------
+planet_event = {
+	id = galactic_overhaul_colony.4
+	hide_window = yes
+	is_triggered_only = yes
+
+	immediate = {
+		if = {
+			limit = { is_colony = yes }
+			if = {
+				limit = { NOT = { is_variable_set = go_col_check_count } }
+				set_variable = { which = go_col_check_count value = 0 }
+			}
+			change_variable = { which = go_col_check_count value = 1 }
+			if = {
+				limit = { go_debug_on = yes }
+				if = {
+					limit = { num_buildings = { type = any value > 1 } }
+					log = "GALACTIC_OVERHAUL_COLONY: [This.GetName] auto-manage check [This.go_col_check_count]: building in progress -> governor ACTIVE"
+				}
+				else_if = {
+					limit = { num_districts = { type = any value > 1 } }
+					log = "GALACTIC_OVERHAUL_COLONY: [This.GetName] auto-manage check [This.go_col_check_count]: districts present -> governor likely active"
+				}
+				else = {
+					log = "GALACTIC_OVERHAUL_COLONY: [This.GetName] auto-manage check [This.go_col_check_count]: no construction/districts -> governor may be OFF (enable 'Auto-Manage New Colonies')"
+				}
+			}
+			if = {
+				limit = { check_variable = { which = go_col_check_count value < 3 } }
+				planet_event = { id = galactic_overhaul_colony.4 days = @go_col_proxy_check_days }
+			}
+		}
+		else = {
+			# Not colonised yet - check again shortly.
+			planet_event = { id = galactic_overhaul_colony.4 days = 100 }
+		}
+	}
+}

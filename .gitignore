@@ -1,0 +1,11 @@
+# OS / editor cruft
+Thumbs.db
+desktop.ini
+*.tmp
+*~
+*.bak
+
+# Cloud-sync conflict copies (OneDrive / Proton Drive), in case any slip in
+*Name clash*
+*conflicted copy*
+*.orig

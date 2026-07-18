@@ -1,0 +1,107 @@
+namespace = galactic_overhaul_civic
+
+# ============================================================================
+# Megacorp founding civics. A corporate empire holding civic_go_banking_charter
+# or civic_go_market_authority instantly founds that institution galaxy-wide;
+# every empire is notified by a popup and gains access. Fired from BOTH
+# on_game_start_country and on_monthly_pulse_country (so reform-adoption works);
+# the founded flags make it idempotent. Debug tag: GALACTIC_OVERHAUL.
+# ============================================================================
+
+# .1 - found the institution(s) this empire's civic(s) entitle.
+country_event = {
+	id = galactic_overhaul_civic.1
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		OR = {
+			has_civic = civic_go_banking_charter
+			has_civic = civic_go_market_authority
+		}
+	}
+
+	immediate = {
+		# --- Banking Charter -> found the Galactic Bank for everyone ---
+		if = {
+			limit = {
+				has_civic = civic_go_banking_charter
+				NOT = { has_global_flag = galactic_overhaul_chartered }
+			}
+			set_global_flag = galactic_overhaul_chartered
+			galactic_overhaul_select_host = yes
+			if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL: [This.GetName] megacorp charter FOUNDED the Galactic Bank galaxy-wide" }
+			every_country = {
+				limit = { is_country_type = default }
+				country_event = { id = galactic_overhaul_civic.2 }
+			}
+		}
+		# --- Market Authority -> found the Galactic Market for everyone ---
+		if = {
+			limit = {
+				has_civic = civic_go_market_authority
+				NOT = { has_global_flag = galactic_market_founded }
+			}
+			choose_galactic_market_host = yes
+			set_global_flag = galactic_market_founded
+			enable_galactic_market = yes
+			if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL: [This.GetName] megacorp authority FOUNDED the Galactic Market galaxy-wide" }
+			every_country = {
+				limit = { is_country_type = default }
+				country_event = { id = galactic_overhaul_civic.3 }
+			}
+		}
+	}
+}
+
+# .2 - Galactic Bank founded popup (sent to every empire).
+country_event = {
+	id = galactic_overhaul_civic.2
+	title = "galactic_overhaul_civic.2.name"
+	desc = "galactic_overhaul_civic.2.desc"
+	picture = GFX_evt_galactic_community
+	is_triggered_only = yes
+
+	option = {
+		name = "galactic_overhaul_civic.2.a"
+	}
+}
+
+# .3 - Galactic Market founded popup (sent to every empire).
+country_event = {
+	id = galactic_overhaul_civic.3
+	title = "galactic_overhaul_civic.3.name"
+	desc = "galactic_overhaul_civic.3.desc"
+	picture = GFX_evt_galactic_community
+	is_triggered_only = yes
+
+	option = {
+		name = "galactic_overhaul_civic.3.a"
+	}
+}
+
+# .4 - "No AI megacorps" rule (unconditional): at game start, convert any AI
+# megacorp into a regular oligarchic empire. The player (is_ai = no) is never
+# touched, so you can still play a megacorp. remove_invalid_civics drops the now-
+# invalid corporate civics; civics = random rolls a valid replacement set.
+country_event = {
+	id = galactic_overhaul_civic.4
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		is_ai = yes
+		is_country_type = default
+		has_authority = auth_corporate
+	}
+
+	immediate = {
+		change_government = {
+			authority = auth_oligarchic
+			civics = random
+			remove_invalid_civics = yes
+			cooldown = no
+		}
+		if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL: converted AI megacorp [This.GetName] to oligarchic (no-AI-megacorps rule)" }
+	}
+}

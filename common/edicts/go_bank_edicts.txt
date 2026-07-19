@@ -1,15 +1,21 @@
 # PRIMARY opener for the Galactic Bank panel — a free, re-clickable country edict
-# on the empire-wide Edicts screen (no planet selection needed). Mirrors Hyperlane
-# Master's (3667301724) PROVEN custom_gui-open pattern verbatim: length = 1 + no
-# resource cost = a button that fires the panel event on activation and auto-clears
-# after a day so it can be pressed again. The country_event is wrapped in
-# hidden_effect so it only runs on real activation (not during tooltip preview) and
-# leaks no popup. potential = is_ai = no shows it to humans only; ai_weight 0 keeps
-# the AI out. is_ai IS valid in an edict potential (edicts are country-scoped),
-# unlike in a planet-scoped decision potential.
+# on the empire-wide Edicts screen (no planet selection needed). Based on Hyperlane
+# Master's (3667301724) custom_gui-open pattern (length = 1 so it fires once on
+# activation, auto-clears after a day, and can be pressed again), with one fix: a
+# `resources = { category = edicts }` block. ALL 171 vanilla edicts carry a
+# category and it is what places the edict in the Edicts UI — HL omitted it (and
+# also ships a Dynamic Mod Menu opener), which is why a category-less edict is hard
+# to find. No cost/upkeep => free to activate. The country_event is wrapped in
+# hidden_effect so it only runs on real activation (not tooltip preview) and leaks
+# no popup. potential = is_ai = no => humans only; ai_weight 0 keeps the AI out.
+# (is_ai IS valid in an edict potential — edicts are country-scoped.)
 go_open_bank_edict = {
 	length = 1
 	icon = "GFX_edict_type_time"
+
+	resources = {
+		category = edicts
+	}
 
 	effect = {
 		custom_tooltip = "edict_go_open_bank_edict_tooltip"

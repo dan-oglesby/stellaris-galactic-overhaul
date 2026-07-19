@@ -99,6 +99,12 @@ country_event = {
 
 		# ---- 4. Persist + debug ----
 		set_variable = { which = go_last_share_price value = go_share_price }
+		# persist this tick's dividend so the Galactic Bank panel can display it
+		if = {
+			limit = { is_variable_set = go_st_div }
+			set_variable = { which = go_last_dividend value = go_st_div }
+		}
+		else = { set_variable = { which = go_last_dividend value = 0 } }
 		if = {
 			limit = { go_debug_on = yes }
 			log = "GALACTIC_OVERHAUL_STOCK: [This.GetName] price=[This.go_share_price] held=[This.go_st_held] invested=[This.go_st_invest] dividend=[This.go_st_div]"

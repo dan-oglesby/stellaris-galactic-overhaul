@@ -1,0 +1,49 @@
+namespace = go_bank
+
+# ============================================================================
+# go_bank.1 - the Galactic Bank panel window (diplomatic custom_gui).
+# Opened by decision_go_open_bank. Root = the player country. The immediate
+# block mirrors the live resources/state into display variables and saves a
+# global event target (go_bank_player) that the readout loc tokens resolve
+# against. Action buttons re-fire this event to refresh the numbers.
+# ============================================================================
+country_event = {
+	id = go_bank.1
+	is_triggered_only = yes
+	diplomatic = yes
+	custom_gui = "go_bank_window"
+	title = "go_bank.1.title"
+	desc  = "go_bank.1.desc"
+	trigger = { is_ai = no }
+
+	immediate = {
+		save_global_event_target_as = go_bank_player
+
+		go_compute_share_price = yes
+		export_resource_stockpile_to_variable = { resource = go_banked_credits variable = go_disp_banked }
+		export_resource_stockpile_to_variable = { resource = go_shares         variable = go_disp_shares }
+
+		# portfolio value = shares * current index price
+		set_variable      = { which = go_disp_value value = go_disp_shares }
+		multiply_variable = { which = go_disp_value value = go_share_price }
+
+		# interest rate: the persisted effective rate from the last interest tick, as a %
+		if = {
+			limit = { is_variable_set = go_last_rate }
+			set_variable = { which = go_disp_interest value = go_last_rate }
+		}
+		else = { set_variable = { which = go_disp_interest value = 0 } }
+		multiply_variable = { which = go_disp_interest value = 100 }
+
+		# this-month dividend: persisted by the stock tick (galactic_overhaul_stock.1)
+		if = {
+			limit = { is_variable_set = go_last_dividend }
+			set_variable = { which = go_disp_dividend value = go_last_dividend }
+		}
+		else = { set_variable = { which = go_disp_dividend value = 0 } }
+
+		if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL: bank panel opened" }
+	}
+
+	option = { name = "go_bank.1.close" default_hide_option = yes }
+}

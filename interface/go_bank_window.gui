@@ -1,0 +1,135 @@
+guiTypes = {
+
+	# ============================================================================
+	# Galactic Bank panel. Shown by event go_bank.1 (diplomatic = yes, custom_gui).
+	# Mirrors the proven Hyperlane Master (3667301724) control-panel structure:
+	#  - readouts are transparent effectButtonTypes whose `text` loc carries
+	#    [go_bank_player.GetX] scripted-loc tokens (resolved against the global
+	#    event target saved in go_bank.1's immediate).
+	#  - action buttons are effectButtonTypes bound to common/button_effects.
+	#  - the hidden diplomatic-element block (parked at -9999) is REQUIRED or a
+	#    diplomatic=yes custom_gui fails to render / CTDs. Copied verbatim from HL.
+	# ============================================================================
+	containerWindowType = {
+		name = "go_bank_window"
+		orientation = center
+		origo = center
+		moveable = yes
+		size = { width = 480 height = 360 }
+		position = { x = 0 y = 0 }
+
+		background = { name = "go_bank_bg1" quadTextureSprite = "GFX_plain_bg_tile" }
+		background = { name = "go_bank_bg2" quadTextureSprite = "GFX_dark_area_window_bg" }
+
+		# close (reserved name => engine closes the window)
+		effectButtonType = {
+			name = "close"
+			quadTextureSprite = "GFX_close"
+			position = { x = -40 y = 3 }
+			orientation = "UPPER_RIGHT"
+			shortcut = "ESCAPE"
+			pdx_tooltip = "CLOSE_TITLE"
+			clicksound = "back_click"
+			effect = "go_bank_readout_noop"
+		}
+
+		# title
+		instantTextBoxType = {
+			name = "go_bank_title"
+			font = "malgun_goth_24"
+			text = "GO_BANK_TITLE"
+			position = { x = 15 y = 8 }
+			maxWidth = 430 maxHeight = 28
+			format = left
+			alwaysTransparent = yes
+		}
+		iconType = { name = "go_bank_line" quadTextureSprite = "GFX_line" position = { x = 4 y = 34 } alwaysTransparent = yes }
+
+		# ===================== READOUTS =====================
+		# Transparent (non-clickable) text; the loc key carries the dynamic tokens.
+		effectButtonType = { name = "go_ro_banked"   font = "cg_16b" text = "go_bank_ro_banked"   position = { x = 20 y = 46 }  size = { x = 440 y = 18 } format = left alwaysTransparent = yes effect = "go_bank_readout_noop" }
+		effectButtonType = { name = "go_ro_interest" font = "cg_16b" text = "go_bank_ro_interest" position = { x = 20 y = 68 }  size = { x = 440 y = 18 } format = left alwaysTransparent = yes effect = "go_bank_readout_noop" }
+		effectButtonType = { name = "go_ro_shares"   font = "cg_16b" text = "go_bank_ro_shares"   position = { x = 20 y = 104 } size = { x = 440 y = 18 } format = left alwaysTransparent = yes effect = "go_bank_readout_noop" }
+		effectButtonType = { name = "go_ro_value"    font = "cg_16b" text = "go_bank_ro_value"    position = { x = 20 y = 126 } size = { x = 440 y = 18 } format = left alwaysTransparent = yes effect = "go_bank_readout_noop" }
+		effectButtonType = { name = "go_ro_dividend" font = "cg_16b" text = "go_bank_ro_dividend" position = { x = 20 y = 148 } size = { x = 440 y = 18 } format = left alwaysTransparent = yes effect = "go_bank_readout_noop" }
+
+		# ===================== ACTION BUTTONS =====================
+		# Deposit trade -> bank
+		effectButtonType = { name = "go_dep_1k"  quadTextureSprite = "GFX_button_150_24" font = "cg_16b" buttonText = "GO_BANK_DEP_1K"  position = { x = 20  y = 190 } effect = "go_bank_deposit_1000" clicksound = "confirmation_click" }
+		effectButtonType = { name = "go_dep_5k"  quadTextureSprite = "GFX_button_150_24" font = "cg_16b" buttonText = "GO_BANK_DEP_5K"  position = { x = 165 y = 190 } effect = "go_bank_deposit_5000" clicksound = "confirmation_click" }
+		effectButtonType = { name = "go_dep_all" quadTextureSprite = "GFX_button_150_24" font = "cg_16b" buttonText = "GO_BANK_DEP_ALL" position = { x = 310 y = 190 } effect = "go_bank_deposit_all"  clicksound = "confirmation_click" }
+		# Withdraw bank -> trade
+		effectButtonType = { name = "go_wd_1k"   quadTextureSprite = "GFX_button_150_24" font = "cg_16b" buttonText = "GO_BANK_WD_1K"   position = { x = 20  y = 224 } effect = "go_bank_withdraw_1000" clicksound = "confirmation_click" }
+		effectButtonType = { name = "go_wd_5k"   quadTextureSprite = "GFX_button_150_24" font = "cg_16b" buttonText = "GO_BANK_WD_5K"   position = { x = 165 y = 224 } effect = "go_bank_withdraw_5000" clicksound = "confirmation_click" }
+		effectButtonType = { name = "go_wd_all"  quadTextureSprite = "GFX_button_150_24" font = "cg_16b" buttonText = "GO_BANK_WD_ALL"  position = { x = 310 y = 224 } effect = "go_bank_withdraw_all"  clicksound = "confirmation_click" }
+		# Liquidate all shares
+		effectButtonType = { name = "go_liq_all" quadTextureSprite = "GFX_button_240_24" font = "cg_16b" buttonText = "GO_BANK_LIQ_ALL" position = { x = 120 y = 266 } effect = "go_bank_liquidate_all" clicksound = "confirmation_click" }
+
+		# ========== REQUIRED HIDDEN DIPLOMATIC EVENT ELEMENTS (verbatim from Hyperlane Master) ==========
+		instantTextBoxType = { name = "heading" font = "malgun_goth_24" position = { x = -9999 y = -9999 } }
+		buttonType = { name = "tts_button" position = { x = -9999 y = -9999 } spriteType = "GFX_button_tts_start" }
+		buttonType = { name = "confirm_button" position = { x = -9999 y = -9999 } spriteType = "GFX_button_164_24" }
+		buttonType = { name = "alien_message_background" size = { x = 0 y = 0 } position = { x = -9999 y = -9999 } spriteType = "GFX_tiles_dark_area_cut_8" alwaysTransparent = yes }
+		instantTextBoxType = { name = "alien_message" font = "cg_16b" position = { x = -9999 y = -9999 } maxWidth = 0 maxHeight = 0 format = left scrollbartype = "standardtext_slider" }
+
+		containerWindowType = {
+			name = "portrait_background"
+			position = { x = -9999 y = -9999 }
+			size = { width = 0 height = 0 }
+			clipping = yes
+			iconType = { name = "event_picture" spriteType = "GFX_diplomacy_portrait_frame" }
+			iconType = { name = "portrait" spriteType = "GFX_portrait_character" }
+		}
+
+		containerWindowType = {
+			name = "portrait"
+			position = { x = -9999 y = -9999 }
+			size = { width = 0 height = 0 }
+			clipping = yes
+			iconType = { name = "portrait" spriteType = "GFX_portrait_gamesetup_mask" }
+			iconType = { name = "black_frame" spriteType = "GFX_diplomacy_portrait_shadow_frame" }
+			iconType = { name = "stripes_1" spriteType = "GFX_diplomacy_stripes_2" }
+			iconType = { name = "city_frame" spriteType = "GFX_diplomacy_portrait_frame" }
+		}
+
+		iconType = { name = "empire_info_bg" spriteType = "GFX_diplomacy_dark_fade_bg" position = { x = -9999 y = -9999 } }
+		instantTextBoxType = { name = "empire_name" font = "malgun_goth_24" position = { x = -9999 y = -9999 } }
+		instantTextBoxType = { name = "empire_government_type" font = "cg_16b" position = { x = -9999 y = -9999 } }
+		instantTextBoxType = { name = "empire_personality_type" font = "cg_16b" position = { x = -9999 y = -9999 } }
+		buttonType = { name = "empire_flag" quadTextureSprite = "GFX_empire_flag_128" position = { x = -9999 y = -9999 } }
+
+		containerWindowType = {
+			name = "leader_details"
+			position = { x = -9999 y = -9999 }
+			containerWindowType = {
+				name = "leader_traits_box"
+				position = { x = 0 y = 0 }
+				size = { width = 0 height = 0 }
+				background = { name = "ethics_bg" spriteType = "GFX_tiles_dark_area_cut_8" }
+			}
+			instantTextBoxType = { name = "empire_traits_label" font = "cg_16b" }
+			instantTextBoxType = { name = "leader_traits_label" font = "cg_16b" }
+			overlappingElementsBoxType = { name = "leader_traits" }
+			instantTextBoxType = { name = "leader_name" font = "cg_16b" }
+			instantTextBoxType = { name = "leader_species" font = "cg_16b" }
+		}
+
+		containerWindowType = {
+			name = "opinion_window"
+			position = { x = -9999 y = -9999 }
+			size = { width = 0 height = 0 }
+			instantTextBoxType = { name = "their_opinion" font = "cg_16b" position = { x = -9999 y = -9999 } }
+			instantTextBoxType = { name = "our_opinion" font = "cg_16b" position = { x = -9999 y = -9999 } }
+		}
+
+		containerWindowType = {
+			name = "EVENT_DIPLO"
+			position = { x = -9999 y = -9999 }
+			size = { width = 0 height = 0 }
+			moveable = no
+			instantTextBoxType = { name = "action_title" font = "malgun_goth_24" maxWidth = 0 alwaysTransparent = yes }
+			instantTextBoxType = { name = "action_desc" font = "malgun_goth_24" maxWidth = 0 maxHeight = 0 format = center alwaysTransparent = yes text_color_code = "H" }
+			listboxType = { name = "option_list" position = { x = -9999 y = -9999 } backGround="" size = { x = 0 y = 0 } spacing = 1 scrollbartype = "standardlistbox_slider" }
+		}
+	}
+}

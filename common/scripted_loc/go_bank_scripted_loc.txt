@@ -1,0 +1,11 @@
+# Numeric display tokens for the Galactic Bank panel readouts. The `value =
+# value:<script_value>` form of defined_text is vanilla-proven (cf.
+# GetGravitySnareCooldownForFleet, GetDendrusGivenBiotechAmount) and prints the
+# number. Resolved in loc against the global event target go_bank_player, e.g.
+# [go_bank_player.GetGoBanked]. The script_values read the go_disp_* variables
+# that go_bank.1's immediate mirrors onto the player country.
+defined_text = { name = GetGoBanked       value = value:go_disp_banked_sv }
+defined_text = { name = GetGoShares       value = value:go_disp_shares_sv }
+defined_text = { name = GetGoShareValue   value = value:go_disp_value_sv }
+defined_text = { name = GetGoInterestRate value = value:go_disp_interest_sv }
+defined_text = { name = GetGoDividend     value = value:go_disp_dividend_sv }

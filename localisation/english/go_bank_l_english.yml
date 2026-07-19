@@ -1,0 +1,29 @@
+﻿l_english:
+ GO_BANK_TITLE:0 "Galactic Bank"
+
+ go_bank.1.title:0 "Galactic Bank"
+ go_bank.1.desc:0 ""
+ go_bank.1.close:0 "Close"
+
+ go_bank_ro_banked:0   "§YBanked Credits:§!  £go_banked_credits£ [go_bank_player.GetGoBanked]"
+ go_bank_ro_interest:0 "§YInterest Rate:§!  [go_bank_player.GetGoInterestRate]% per month"
+ go_bank_ro_shares:0   "§YGalactic Shares:§!  £go_shares£ [go_bank_player.GetGoShares]"
+ go_bank_ro_value:0    "§YPortfolio Value:§!  £trade£ [go_bank_player.GetGoShareValue]"
+ go_bank_ro_dividend:0 "§YDividend (last tick):§!  £trade£ [go_bank_player.GetGoDividend]"
+
+ GO_BANK_DEP_1K:0  "Deposit 1000"
+ GO_BANK_DEP_5K:0  "Deposit 5000"
+ GO_BANK_DEP_ALL:0 "Deposit All"
+ GO_BANK_WD_1K:0   "Withdraw 1000"
+ GO_BANK_WD_5K:0   "Withdraw 5000"
+ GO_BANK_WD_ALL:0  "Withdraw All"
+ GO_BANK_LIQ_ALL:0 "Liquidate All Shares"
+
+ GO_BANK_NEED_TRADE:0 "Not enough Trade to deposit that amount."
+ GO_BANK_NO_TRADE:0   "You have no Trade to deposit."
+ GO_BANK_NEED_BANK:0  "Not enough Banked Credits to withdraw that amount."
+ GO_BANK_NO_BANK:0    "Your bank balance is empty."
+ GO_BANK_NO_SHARES:0  "You hold no Galactic Shares to liquidate."
+
+ decision_go_open_bank:0 "Open the Galactic Bank"
+ decision_go_open_bank_desc:0 "Open the Galactic Bank panel to deposit or withdraw Banked Credits, review your interest rate, and manage your Galactic Shares portfolio."

@@ -2,11 +2,11 @@
 
 A multi-feature **economic & automation overhaul** for **Stellaris 4.4 "Pegasus"**.
 
-`version 0.18.0` · `supported_version 4.4.*` · tags: Economy, Gameplay
+`version 0.19.0` · `supported_version 4.4.*` · tags: Economy, Gameplay
 
 ## Features
 
-- **Galactic Banking** — a Galactic Community resolution charters a galaxy-wide reserve bank. Deposit trade into **Banked Credits** for compounding monthly interest whose rate reacts to market volatility. Conservative / Standard / Aggressive tiers; the higher-yield tiers carry a monthly **risk of loss**. Automatic deposit-when-flush / withdraw-when-low.
+- **Galactic Banking** — a Galactic Community resolution charters a galaxy-wide reserve bank. Deposit trade into **Banked Credits** for compounding monthly interest whose rate reacts to market volatility. Conservative / Standard / Aggressive tiers; the higher-yield tiers carry a monthly **risk of loss**. Automatic deposit-when-flush / withdraw-when-low, plus a manual **Galactic Bank panel** (opened from the capital's decisions) to deposit/withdraw Banked Credits by hand, read your live rate, portfolio value and last dividend, and liquidate shares on the spot.
 - **Treasury Automation** — an auto buy/sell desk that sells commodities near their cap (when overflowing) and buys them when running dry. An **Opportunistic** setting also actively buys commodities when they're cheap vs their recent average and sells when dear, for a monthly management fee.
 - **Galactic Stock Market** — auto-invest surplus trade into **Galactic Shares** whose value tracks a live market index. Dividends, optional **DRIP** reinvestment, with diminishing returns, a management fee, and crash risk to keep it balanced. Liquidate on demand.
 - **Taxation Doctrine** — an automated tax stance that drifts toward a chosen target (laissez-faire ↔ heavy), with societal effects.
@@ -24,7 +24,7 @@ Stellaris loads local mods via a `.mod` file in `Documents\Paradox Interactive\S
 2. Create `Documents\Paradox Interactive\Stellaris\mod\galactic_overhaul.mod`:
    ```
    name="Galactic Overhaul"
-   version="0.18.0"
+   version="0.19.0"
    tags={
        "Economy"
        "Gameplay"

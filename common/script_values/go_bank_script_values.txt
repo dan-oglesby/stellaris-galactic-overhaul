@@ -1,0 +1,7 @@
+# Script values that expose the panel display variables (set in go_bank.1's
+# immediate on the player country) to the scripted_loc defined_text tokens.
+go_disp_banked_sv   = { value = 0 if = { limit = { is_variable_set = go_disp_banked }   add = go_disp_banked } }
+go_disp_shares_sv   = { value = 0 if = { limit = { is_variable_set = go_disp_shares }   add = go_disp_shares } }
+go_disp_value_sv    = { value = 0 if = { limit = { is_variable_set = go_disp_value }    add = go_disp_value } }
+go_disp_interest_sv = { value = 0 if = { limit = { is_variable_set = go_disp_interest } add = go_disp_interest } }
+go_disp_dividend_sv = { value = 0 if = { limit = { is_variable_set = go_disp_dividend } add = go_disp_dividend } }

@@ -1,0 +1,19 @@
+# Opener for the Galactic Bank panel. Decisions are planet-scoped, so this is
+# gated to the capital and fires the country event on the owner (same pattern as
+# decision_go_liquidate_stocks). Human empires only.
+decision_go_open_bank = {
+	owned_planets_only = yes
+	enactment_time = 0
+
+	potential = {
+		is_capital = yes
+		owner = { is_ai = no }
+	}
+	allow = { always = yes }
+
+	effect = {
+		owner = { country_event = { id = go_bank.1 } }
+	}
+
+	ai_weight = { weight = 0 }
+}

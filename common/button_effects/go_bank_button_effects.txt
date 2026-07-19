@@ -1,0 +1,52 @@
+# Button effects for the Galactic Bank panel (interface/go_bank_window.gui).
+# potential = when the button/element is SHOWN; allow = when it is CLICKABLE
+# (fail_text greys it out); effect = runs on click. All act on From (= the
+# panel's country = the player) and re-fire go_bank.1 to repaint the numbers.
+
+# no-op used by the transparent text readouts and the close button
+go_bank_readout_noop = {
+	potential = { always = yes }
+	allow     = { always = yes }
+	effect    = { }
+}
+
+# ---------- DEPOSIT (trade -> bank) ----------
+go_bank_deposit_1000 = {
+	potential = { always = yes }
+	allow  = { custom_tooltip = { fail_text = "GO_BANK_NEED_TRADE" From = { resource_stockpile_compare = { resource = trade value >= 1000 } } } }
+	effect = { From = { go_bank_do_deposit = { AMOUNT = 1000 } country_event = { id = go_bank.1 } } }
+}
+go_bank_deposit_5000 = {
+	potential = { always = yes }
+	allow  = { custom_tooltip = { fail_text = "GO_BANK_NEED_TRADE" From = { resource_stockpile_compare = { resource = trade value >= 5000 } } } }
+	effect = { From = { go_bank_do_deposit = { AMOUNT = 5000 } country_event = { id = go_bank.1 } } }
+}
+go_bank_deposit_all = {
+	potential = { always = yes }
+	allow  = { custom_tooltip = { fail_text = "GO_BANK_NO_TRADE" From = { resource_stockpile_compare = { resource = trade value >= 1 } } } }
+	effect = { From = { go_bank_do_deposit_all = yes country_event = { id = go_bank.1 } } }
+}
+
+# ---------- WITHDRAW (bank -> trade) ----------
+go_bank_withdraw_1000 = {
+	potential = { always = yes }
+	allow  = { custom_tooltip = { fail_text = "GO_BANK_NEED_BANK" From = { resource_stockpile_compare = { resource = go_banked_credits value >= 1000 } } } }
+	effect = { From = { go_bank_do_withdraw = { AMOUNT = 1000 } country_event = { id = go_bank.1 } } }
+}
+go_bank_withdraw_5000 = {
+	potential = { always = yes }
+	allow  = { custom_tooltip = { fail_text = "GO_BANK_NEED_BANK" From = { resource_stockpile_compare = { resource = go_banked_credits value >= 5000 } } } }
+	effect = { From = { go_bank_do_withdraw = { AMOUNT = 5000 } country_event = { id = go_bank.1 } } }
+}
+go_bank_withdraw_all = {
+	potential = { always = yes }
+	allow  = { custom_tooltip = { fail_text = "GO_BANK_NO_BANK" From = { resource_stockpile_compare = { resource = go_banked_credits value >= 1 } } } }
+	effect = { From = { go_bank_do_withdraw_all = yes country_event = { id = go_bank.1 } } }
+}
+
+# ---------- LIQUIDATE ----------
+go_bank_liquidate_all = {
+	potential = { always = yes }
+	allow  = { custom_tooltip = { fail_text = "GO_BANK_NO_SHARES" From = { resource_stockpile_compare = { resource = go_shares value >= 1 } } } }
+	effect = { From = { go_bank_liquidate_all_effect = yes country_event = { id = go_bank.1 } } }
+}

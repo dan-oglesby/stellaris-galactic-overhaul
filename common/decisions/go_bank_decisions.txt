@@ -1,19 +1,30 @@
-# Opener for the Galactic Bank panel. Decisions are planet-scoped, so this is
-# gated to the capital and fires the country event on the owner (same pattern as
-# decision_go_liquidate_stocks). Human empires only.
+# FALLBACK opener for the Galactic Bank panel (the edict go_open_bank_edict on the
+# Edicts screen is the primary). Decisions are PLANET-scoped, so this is gated to
+# the capital and fires the country event on the owner (same structure as the
+# working decision_go_liquidate_stocks).
+#
+# CRITICAL: is_ai must NOT sit in a decision `potential` in 4.4 — it is wrong-scope
+# there (the decision is planet-scoped) and silently suppresses the decision, which
+# is exactly why this panel never appeared. The human-only gate lives in `allow`
+# instead (vanilla puts owner={is_ai=no} in allow, e.g. 02_special_decisions.txt);
+# ai_weight = 0 keeps the AI from ever enacting it. No icon needed (the working
+# liquidate decision has none and renders fine).
 decision_go_open_bank = {
 	owned_planets_only = yes
-	enactment_time = 0
 
 	potential = {
 		is_capital = yes
+	}
+
+	allow = {
 		owner = { is_ai = no }
 	}
-	allow = { always = yes }
 
 	effect = {
 		owner = { country_event = { id = go_bank.1 } }
 	}
 
-	ai_weight = { weight = 0 }
+	ai_weight = {
+		weight = 0
+	}
 }

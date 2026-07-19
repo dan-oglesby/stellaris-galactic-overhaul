@@ -27,3 +27,7 @@
 
  decision_go_open_bank:0 "Open the Galactic Bank"
  decision_go_open_bank_desc:0 "Open the Galactic Bank panel to deposit or withdraw Banked Credits, review your interest rate, and manage your Galactic Shares portfolio."
+
+ edict_go_open_bank_edict:0 "Open the Galactic Bank"
+ edict_go_open_bank_edict_desc:0 "Open the Galactic Bank panel to deposit or withdraw Banked Credits, review your interest rate, and manage your Galactic Shares portfolio. Free to use; available from the Edicts screen."
+ edict_go_open_bank_edict_tooltip:0 "Opens the Galactic Bank panel."

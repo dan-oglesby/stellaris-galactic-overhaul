@@ -1,5 +1,5 @@
 ﻿name="Galactic Overhaul"
-version="0.19.0"
+version="0.19.1"
 tags={
 	"Economy"
 	"Gameplay"

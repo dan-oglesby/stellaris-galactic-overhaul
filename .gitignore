@@ -9,3 +9,6 @@ desktop.ini
 *Name clash*
 *conflicted copy*
 *.orig
+
+# cloud-sync conflict artifacts (Proton Drive / OneDrive)
+*Edit conflict*

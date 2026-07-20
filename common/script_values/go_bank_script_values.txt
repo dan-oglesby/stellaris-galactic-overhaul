@@ -1,7 +1,55 @@
-# Script values that expose the panel display variables (set in go_bank.1's
-# immediate on the player country) to the scripted_loc defined_text tokens.
-go_disp_banked_sv   = { value = 0 if = { limit = { is_variable_set = go_disp_banked }   add = go_disp_banked } }
-go_disp_shares_sv   = { value = 0 if = { limit = { is_variable_set = go_disp_shares }   add = go_disp_shares } }
-go_disp_value_sv    = { value = 0 if = { limit = { is_variable_set = go_disp_value }    add = go_disp_value } }
-go_disp_interest_sv = { value = 0 if = { limit = { is_variable_set = go_disp_interest } add = go_disp_interest } }
-go_disp_dividend_sv = { value = 0 if = { limit = { is_variable_set = go_disp_dividend } add = go_disp_dividend } }
+# Values behind the Galactic Bank panel readouts.
+#
+# WHY THESE READ LIVE STATE: re-firing go_bank.1 from a button does NOT repaint
+# an already-open custom_gui window (it just queues a second window). The GUI
+# DOES re-evaluate scripted_loc/script_value tokens on redraw, so the only way
+# the panel updates after a deposit is for these to read live resources rather
+# than the go_disp_* snapshot variables baked in go_bank.1's immediate. That
+# snapshot approach is why the balance appeared frozen after depositing.
+#
+# SYNTAX NOTE: script values do not support `value =` or `if = { limit = ... }`
+# (those threw "unknown command" at load in v0.19.2). Live resource reads use
+# vanilla's parameterised get_resource_amount (07_script_values_shroud.txt:599),
+# which wraps resource_stockpile_compare in a complex_trigger_modifier; variable
+# reads use `modifier = { <op> <gating trigger> }`.
+
+# live Banked Credits balance
+go_disp_banked_sv = {
+	base = 0
+	add = value:get_resource_amount|RESOURCE|go_banked_credits|PERCENTAGE|1|
+}
+
+# live Galactic Shares held
+go_disp_shares_sv = {
+	base = 0
+	add = value:get_resource_amount|RESOURCE|go_shares|PERCENTAGE|1|
+}
+
+# portfolio value = live shares * last computed index price
+go_disp_value_sv = {
+	base = 0
+	add = value:get_resource_amount|RESOURCE|go_shares|PERCENTAGE|1|
+	modifier = {
+		mult = go_last_share_price
+		is_variable_set = go_last_share_price
+	}
+}
+
+# effective interest rate from the last interest tick, as a percentage
+go_disp_interest_sv = {
+	base = 0
+	modifier = {
+		add = go_last_rate
+		is_variable_set = go_last_rate
+	}
+	mult = 100
+}
+
+# dividend paid by the last stock tick
+go_disp_dividend_sv = {
+	base = 0
+	modifier = {
+		add = go_last_dividend
+		is_variable_set = go_last_dividend
+	}
+}

@@ -1,19 +1,25 @@
 # Transfer effects invoked by the Galactic Bank panel's buttons. Run in country
 # scope (From = the player country). "All" moves use export-to-variable + mult
 # (the same pattern the interest event uses), so no fixed-amount limitation.
+#
+# NOTE: log lines here are STATIC - scripted_effect logs do NOT render [This.x]
+# scope macros at runtime; including them throws "Invalid macro entry" at load
+# and breaks the effect. (Learned the hard way in v0.12.1; repeated here in
+# v0.19.3 - it is what stopped the deposit buttons from working.) Log dynamic
+# values from a calling EVENT instead, never from a scripted_effect.
 
 # fixed-chunk deposit: trade -> bank
 go_bank_do_deposit = {
 	add_resource = { trade = -$AMOUNT$ }
 	add_resource = { go_banked_credits = $AMOUNT$ }
-	if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_BANK: [This.GetName] panel DEPOSIT $AMOUNT$" }
+	if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_BANK: panel DEPOSIT $AMOUNT$" }
 }
 
 # fixed-chunk withdraw: bank -> trade
 go_bank_do_withdraw = {
 	add_resource = { go_banked_credits = -$AMOUNT$ }
 	add_resource = { trade = $AMOUNT$ }
-	if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_BANK: [This.GetName] panel WITHDRAW $AMOUNT$" }
+	if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_BANK: panel WITHDRAW $AMOUNT$" }
 }
 
 # deposit ALL trade
@@ -23,7 +29,7 @@ go_bank_do_deposit_all = {
 		limit = { check_variable = { which = go_txn value > 0 } }
 		add_resource = { trade = -1 mult = go_txn }
 		add_resource = { go_banked_credits = 1 mult = go_txn }
-		if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_BANK: [This.GetName] panel DEPOSIT ALL [This.go_txn]" }
+		if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_BANK: panel DEPOSIT ALL" }
 	}
 	clear_variable = go_txn
 }
@@ -35,7 +41,7 @@ go_bank_do_withdraw_all = {
 		limit = { check_variable = { which = go_txn value > 0 } }
 		add_resource = { go_banked_credits = -1 mult = go_txn }
 		add_resource = { trade = 1 mult = go_txn }
-		if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_BANK: [This.GetName] panel WITHDRAW ALL [This.go_txn]" }
+		if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_BANK: panel WITHDRAW ALL" }
 	}
 	clear_variable = go_txn
 }
@@ -50,7 +56,7 @@ go_bank_liquidate_all_effect = {
 		limit = { check_variable = { which = go_liq_held value > 0 } }
 		add_resource = { trade = 1 mult = go_liq_payout }
 		add_resource = { go_shares = -1 mult = go_liq_held }
-		if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_STOCK: [This.GetName] panel LIQUIDATE [This.go_liq_held] shares for [This.go_liq_payout]" }
+		if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_STOCK: panel LIQUIDATE ALL shares" }
 	}
 	clear_variable = go_liq_held
 	clear_variable = go_liq_payout

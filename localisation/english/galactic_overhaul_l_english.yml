@@ -8,11 +8,9 @@
  go_conservative:0 "Conservative Reserve"
  go_conservative_desc:0 "A cautious charter.\n+25,000 Trade storage\nBase +0.25% monthly interest, rising with sharp galactic market swings (up to double) and tapering as reserves grow."
  go_standard:0 "Standard Reserve"
- go_standard_desc:0 "A balanced charter.\n+50,000 Trade storage\nBase +0.50% monthly interest, rising with sharp galactic market swings (up to double) and tapering as reserves grow.
-§RRisk: ~8%/month chance of a market loss.§!"
+ go_standard_desc:0 "A balanced charter.\n+50,000 Trade storage\nBase +0.50% monthly interest, rising with sharp galactic market swings (up to double) and tapering as reserves grow.\n§RRisk: ~8%/month chance of a market loss.§!"
  go_aggressive:0 "Aggressive Reserve"
- go_aggressive_desc:0 "An expansive charter.\n+100,000 Trade storage\nBase +1.00% monthly interest, rising with sharp galactic market swings (up to double) and tapering as reserves grow.
-§RRisk: ~15%/month chance of a larger market loss.§!"
+ go_aggressive_desc:0 "An expansive charter.\n+100,000 Trade storage\nBase +1.00% monthly interest, rising with sharp galactic market swings (up to double) and tapering as reserves grow.\n§RRisk: ~15%/month chance of a larger market loss.§!"
  galactic_overhaul_active_name:0 "Galactic Banking"
  galactic_overhaul_tier_conservative_name:0 "Conservative Reserve"
  galactic_overhaul_tier_standard_name:0 "Standard Reserve"

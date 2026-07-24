@@ -1,11 +1,13 @@
 namespace = go_bank
 
 # ============================================================================
-# go_bank.1 - the Galactic Bank panel window (diplomatic custom_gui).
-# Opened by decision_go_open_bank. Root = the player country. The immediate
-# block mirrors the live resources/state into display variables and saves a
-# global event target (go_bank_player) that the readout loc tokens resolve
-# against. Action buttons re-fire this event to refresh the numbers.
+# go_bank.1 - the Treasury Reserve panel window (diplomatic custom_gui).
+# Opened by the go_open_bank_edict edict (primary) or decision_go_open_bank
+# (capital fallback). Root = the player country. Saves a global event target
+# (go_bank_player) that the readout loc tokens resolve against. The readouts read
+# LIVE resources / persisted rate on each GUI redraw (see
+# common/script_values/go_bank_script_values.txt), so the panel self-refreshes
+# after a deposit/withdraw without re-firing this event.
 # ============================================================================
 country_event = {
 	id = go_bank.1
@@ -18,31 +20,7 @@ country_event = {
 
 	immediate = {
 		save_global_event_target_as = go_bank_player
-
-		go_compute_share_price = yes
-		export_resource_stockpile_to_variable = { resource = go_banked_credits variable = go_disp_banked }
-		export_resource_stockpile_to_variable = { resource = go_shares         variable = go_disp_shares }
-
-		# portfolio value = shares * current index price
-		set_variable      = { which = go_disp_value value = go_disp_shares }
-		multiply_variable = { which = go_disp_value value = go_share_price }
-
-		# interest rate: the persisted effective rate from the last interest tick, as a %
-		if = {
-			limit = { is_variable_set = go_last_rate }
-			set_variable = { which = go_disp_interest value = go_last_rate }
-		}
-		else = { set_variable = { which = go_disp_interest value = 0 } }
-		multiply_variable = { which = go_disp_interest value = 100 }
-
-		# this-month dividend: persisted by the stock tick (galactic_overhaul_stock.1)
-		if = {
-			limit = { is_variable_set = go_last_dividend }
-			set_variable = { which = go_disp_dividend value = go_last_dividend }
-		}
-		else = { set_variable = { which = go_disp_dividend value = 0 } }
-
-		if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL: bank panel opened" }
+		if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL: reserve panel opened" }
 	}
 
 	option = { name = "go_bank.1.close" default_hide_option = yes }

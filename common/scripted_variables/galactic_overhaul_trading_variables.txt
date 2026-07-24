@@ -7,8 +7,9 @@
 #   buying up toward that reserve each month (rate- and affordability-limited),
 #   REGARDLESS of income sign, so bursty consumers like alloys never run dry.
 
-@go_trade_sell_cap_frac   = 0.95    # "near cap": sell once stockpile reaches this fraction of the cap
+@go_trade_sell_cap_frac   = 0.90    # "near cap": sell once stockpile reaches this fraction of the cap
 @go_trade_sell_keep_frac  = 0.80    # sell the surplus down to this fraction of the cap
+@go_trade_full_frac       = 0.90    # SELL GATE: skip selling if TRADE itself is >= this fraction of its cap (proceeds would waste / nothing to buy)
 @go_trade_buy_target_frac = 0.25    # RESTOCK target: keep each commodity at least this fraction of its cap in stock
 @go_trade_buy_floor       = 500     # (legacy, no longer referenced - superseded by @go_trade_buy_target_frac)
 @go_trade_max_per_month   = 1000    # max units traded per resource per month (rate limit; also caps restocking)

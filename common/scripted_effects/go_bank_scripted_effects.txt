@@ -45,19 +45,3 @@ go_bank_do_withdraw_all = {
 	}
 	clear_variable = go_txn
 }
-
-# liquidate ALL shares at the current market price (mirrors decision_go_liquidate_stocks)
-go_bank_liquidate_all_effect = {
-	go_compute_share_price = yes
-	export_resource_stockpile_to_variable = { resource = go_shares variable = go_liq_held }
-	set_variable      = { which = go_liq_payout value = go_liq_held }
-	multiply_variable = { which = go_liq_payout value = go_share_price }
-	if = {
-		limit = { check_variable = { which = go_liq_held value > 0 } }
-		add_resource = { trade = 1 mult = go_liq_payout }
-		add_resource = { go_shares = -1 mult = go_liq_held }
-		if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_STOCK: panel LIQUIDATE ALL shares" }
-	}
-	clear_variable = go_liq_held
-	clear_variable = go_liq_payout
-}

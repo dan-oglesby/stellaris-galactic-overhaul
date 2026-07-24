@@ -1,5 +1,5 @@
 ### Galactic Overhaul - resource icons (normal + greyscale).
-### Banked Credits reuses the vanilla Trade icon; Galactic Shares reuses Energy.
+### Banked Credits (the Treasury Reserve balance) reuses the vanilla Trade icon.
 spriteTypes = {
 	spriteType = {
 		name = "GFX_resource_go_banked_credits"
@@ -8,13 +8,5 @@ spriteTypes = {
 	spriteType = {
 		name = "GFX_resource_go_banked_credits_grey"
 		textureFile = "gfx/interface/icons/resources/trade_grey.dds"
-	}
-	spriteType = {
-		name = "GFX_resource_go_shares"
-		textureFile = "gfx/interface/icons/resources/energy.dds"
-	}
-	spriteType = {
-		name = "GFX_resource_go_shares_grey"
-		textureFile = "gfx/interface/icons/resources/energy_grey.dds"
 	}
 }

@@ -1,37 +1,19 @@
 # ============================================================================
-# Galactic Bank - tunable constants (scripted variables, substituted at parse time)
+# Treasury Reserve (Galactic Banking) - tunable constants
 # ============================================================================
+# The Reserve pays a FLAT, STATED monthly interest rate on the Banked Credits
+# balance - no hidden market model. These percentages are what the player sees in
+# the policy tooltip and the Reserve panel, so keep the loc in sync if you retune.
 
-# Base monthly interest rates by policy tier.
-@go_rate_conservative = 0.0025
-@go_rate_standard      = 0.005
-@go_rate_aggressive    = 0.01
-# Extra flat rate for the Galactic Bank host empire.
-@go_rate_host_bonus    = 0.005
+# Flat monthly interest rates by policy tier.
+@go_rate_conservative  = 0.003   # 0.3%/month, no risk of loss
+@go_rate_standard      = 0.006   # 0.6%/month, ~8% monthly chance of a loss
+@go_rate_aggressive    = 0.012   # 1.2%/month, ~15% monthly chance of a larger loss
+# Extra flat rate while your empire is the Galactic Bank host.
+@go_rate_host_bonus    = 0.0025  # +0.25%/month
 
-# ---- Dynamic activity from price signals (SELF-CALIBRATING) ----
-# Activity is derived from the galactic mineral price's own recent behaviour:
-# we track an exponentially-weighted recent mean and its mean-absolute-deviation
-# (MAD = typical wobble). "Activity" = how many MADs the current price sits from
-# that mean, in EITHER direction. A sharp move (up or down) vs recent calm = high
-# activity = higher interest. No external baseline needed.
-
-# EMA smoothing. Higher = shorter memory / more reactive. 0.15 ~ a few-month memory.
-@go_alpha              = 0.15
-# Noise floor: deviations smaller than this many MADs count as nothing.
-@go_z_min              = 1.0
-# Ramp width: MADs of deviation (beyond the floor) over which activity goes 0 -> max.
-@go_z_range            = 2.0
-# Maximum activity bonus. 1.0 = up to +100% (the rate can double at peak activity).
-@go_activity_max       = 1.0
-# Floor on MAD to avoid divide-by-zero on a perfectly flat / brand-new market.
-@go_mad_epsilon        = 0.01
-
-# ---- Savings dampening (counterweight to high activity) ----
-# As reserves grow the rate falls. dampening = reserves / scale, capped at maxdamp.
-@go_savings_scale      = 200000
-@go_savings_maxdamp    = 0.75
-
-# --- Bank risk of loss (tiers above Conservative carry downside) ---
-@go_bank_loss_std = 0.05   # Standard: lose this fraction of banked credits on a bad month (~8% monthly chance)
-@go_bank_loss_agg = 0.10   # Aggressive: lose this fraction of banked credits on a bad month (~15% monthly chance)
+# --- Risk of loss (tiers above Conservative) ---
+# On a bad month, lose this fraction of the current balance. The monthly CHANCE is
+# set in galactic_overhaul.1's random_list (Standard ~8%, Aggressive ~15%).
+@go_bank_loss_std = 0.05   # Standard: -5% of balance on a loss
+@go_bank_loss_agg = 0.10   # Aggressive: -10% of balance on a loss

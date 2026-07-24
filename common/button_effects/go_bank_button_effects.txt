@@ -140,23 +140,3 @@ go_bank_withdraw_all = {
 		custom_tooltip = "GO_BANK_WD_ALL"
 	}
 }
-
-# ---------- LIQUIDATE ----------
-go_bank_liquidate_all = {
-	potential = { always = yes }
-	allow     = { always = yes }
-	effect = {
-		hidden_effect = {
-			From = {
-				if = {
-					limit = { resource_stockpile_compare = { resource = go_shares value >= 1 } }
-					go_bank_liquidate_all_effect = yes
-				}
-				else = {
-					if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_STOCK: panel LIQUIDATE BLOCKED - no shares held" }
-				}
-			}
-		}
-		custom_tooltip = "GO_BANK_LIQ_ALL"
-	}
-}

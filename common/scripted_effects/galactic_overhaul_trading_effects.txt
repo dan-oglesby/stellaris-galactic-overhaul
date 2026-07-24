@@ -82,13 +82,31 @@ galactic_overhaul_trade_resource = {
 	set_variable = { which = go_t_buytarget value = go_t_max }
 	multiply_variable = { which = go_t_buytarget value = @go_trade_buy_target_frac }
 
-	# ===================== SELL: near cap AND surplus income =====================
+	# Is the TRADE pool near its own cap? Gate for selling: don't convert a soon-to-waste
+	# commodity into soon-to-waste trade. A near-full trade pool also signals there is
+	# nothing to spend the proceeds on (the Reserve sweep and other restocks would have
+	# drained it otherwise), which is exactly "nothing else to buy with the extra trade".
+	export_resource_stockpile_to_variable = { resource = trade variable = go_t_tradenow }
+	export_resource_maximum_to_variable   = { resource = trade variable = go_t_trademax }
+	set_variable = { which = go_t_tradefull value = 0 }
+	if = {
+		limit = { check_variable = { which = go_t_trademax value > 0 } }
+		set_variable = { which = go_t_tradehi value = go_t_trademax }
+		multiply_variable = { which = go_t_tradehi value = @go_trade_full_frac }
+		if = {
+			limit = { check_variable = { which = go_t_tradenow value >= go_t_tradehi } }
+			set_variable = { which = go_t_tradefull value = 1 }
+		}
+	}
+
+	# ===================== SELL: near cap AND surplus income AND trade has room =====================
 	if = {
 		limit = {
 			check_variable = { which = go_t_price value > 0 }
 			check_variable = { which = go_t_max value > 0 }
 			check_variable = { which = go_t_stock value >= go_t_sellthresh }
 			check_variable = { which = go_t_income value > 0 }
+			check_variable = { which = go_t_tradefull value = 0 }
 		}
 		# sell down to cap * keep_frac, capped per month
 		set_variable = { which = go_t_keep value = go_t_max }
@@ -240,4 +258,8 @@ galactic_overhaul_trade_resource = {
 	clear_variable = go_t_energy
 	clear_variable = go_t_unit
 	clear_variable = go_t_afford
+	clear_variable = go_t_tradenow
+	clear_variable = go_t_trademax
+	clear_variable = go_t_tradehi
+	clear_variable = go_t_tradefull
 }

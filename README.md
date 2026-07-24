@@ -2,19 +2,18 @@
 
 A multi-feature **economic & automation overhaul** for **Stellaris 4.4 "Pegasus"**.
 
-`version 0.19.4` · `supported_version 4.4.*` · tags: Economy, Gameplay
+`version 0.20.0` · `supported_version 4.4.*` · tags: Economy, Gameplay
 
 ## Features
 
-- **Galactic Banking** — a Galactic Community resolution charters a galaxy-wide reserve bank. Deposit trade into **Banked Credits** for compounding monthly interest whose rate reacts to market volatility. Conservative / Standard / Aggressive tiers; the higher-yield tiers carry a monthly **risk of loss**. Automatic deposit-when-flush / withdraw-when-low, plus a manual **Galactic Bank panel** (opened from the capital's decisions) to deposit/withdraw Banked Credits by hand, read your live rate, portfolio value and last dividend, and liquidate shares on the spot.
-- **Treasury Automation** — an auto buy/sell desk that keeps each commodity self-levelling in a reserve band: it **restocks** anything that falls below ~25% of its cap (so bursty consumers like alloys don't run dry) and sells the overflow near the cap. An **Opportunistic** setting adds active buy-low / sell-high trading against each commodity's recent average, for a monthly management fee.
-- **Galactic Stock Market** — auto-invest surplus trade into **Galactic Shares** whose value tracks a live market index. Dividends, optional **DRIP** reinvestment, with diminishing returns, a management fee, and crash risk to keep it balanced. Liquidate on demand.
+- **Treasury Reserve (Galactic Banking)** — a Galactic Community resolution charters a galaxy-wide reserve bank. Deposit trade into **Banked Credits** and earn a **flat, stated monthly interest** — no hidden formulas. Conservative / Standard / Aggressive tiers (0.3% / 0.6% / 1.2% per month); the higher tiers pay more but carry a stated monthly **chance of loss**. Surplus trade is swept into the Reserve automatically (keeping a liquid floor), and a transparent **Galactic Bank panel** — opened from the **Edicts** screen — shows your balance, rate, last month's interest and liquid trade, and lets you deposit/withdraw by hand.
+- **Treasury Automation** — an auto buy/sell desk that keeps each commodity self-levelling in a reserve band: it **restocks** anything that falls below ~25% of its cap (so bursty consumers like alloys don't run dry) and sells the overflow near ~90% of cap — but only when there's a use for the proceeds (it holds rather than sell if your Trade pool is already near full). An **Opportunistic** setting adds active buy-low / sell-high trading against each commodity's recent average, for a monthly management fee.
 - **Taxation Doctrine** — an automated tax stance that drifts toward a chosen target (laissez-faire ↔ heavy), with societal effects.
 - **Smart Build** — construction ships automatically claim outposts, build **mining/research stations** on unserviced deposits (deficit-first), and build megastructures (hyper relays, gateways, orbital rings, habitats), paying real costs.
 - **Auto-Colonization** — automatically builds and dispatches colony ships to colonizable worlds in your borders.
 - **Science Automation** — keeps science ships crewed by recruiting/assigning scientists.
 - **Megacorp founding civics** — corporate empires can instantly found the Galactic Bank or Galactic Market galaxy-wide (with a popup for every empire); an option suppresses AI megacorps.
-- Custom resources (Banked Credits, Galactic Shares), a strongest-economy Galactic Market host override, and always-on debug logging.
+- Custom resource (Banked Credits), a strongest-economy Galactic Market host override, and always-on debug logging.
 
 ## Deploying (local dev)
 
@@ -24,7 +23,7 @@ Stellaris loads local mods via a `.mod` file in `Documents\Paradox Interactive\S
 2. Create `Documents\Paradox Interactive\Stellaris\mod\galactic_overhaul.mod`:
    ```
    name="Galactic Overhaul"
-   version="0.19.4"
+   version="0.20.0"
    tags={
        "Economy"
        "Gameplay"

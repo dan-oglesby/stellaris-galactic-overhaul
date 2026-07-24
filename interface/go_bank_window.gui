@@ -47,11 +47,10 @@ guiTypes = {
 
 		# ===================== READOUTS =====================
 		# Transparent (non-clickable) text; the loc key carries the dynamic tokens.
-		effectButtonType = { name = "go_ro_banked"   font = "cg_16b" text = "go_bank_ro_banked"   position = { x = 20 y = 46 }  size = { x = 440 y = 18 } format = left alwaysTransparent = yes effect = "go_bank_readout_noop" }
-		effectButtonType = { name = "go_ro_interest" font = "cg_16b" text = "go_bank_ro_interest" position = { x = 20 y = 68 }  size = { x = 440 y = 18 } format = left alwaysTransparent = yes effect = "go_bank_readout_noop" }
-		effectButtonType = { name = "go_ro_shares"   font = "cg_16b" text = "go_bank_ro_shares"   position = { x = 20 y = 104 } size = { x = 440 y = 18 } format = left alwaysTransparent = yes effect = "go_bank_readout_noop" }
-		effectButtonType = { name = "go_ro_value"    font = "cg_16b" text = "go_bank_ro_value"    position = { x = 20 y = 126 } size = { x = 440 y = 18 } format = left alwaysTransparent = yes effect = "go_bank_readout_noop" }
-		effectButtonType = { name = "go_ro_dividend" font = "cg_16b" text = "go_bank_ro_dividend" position = { x = 20 y = 148 } size = { x = 440 y = 18 } format = left alwaysTransparent = yes effect = "go_bank_readout_noop" }
+		effectButtonType = { name = "go_ro_banked"       font = "cg_16b" text = "go_bank_ro_banked"       position = { x = 20 y = 46 }  size = { x = 440 y = 18 } format = left alwaysTransparent = yes effect = "go_bank_readout_noop" }
+		effectButtonType = { name = "go_ro_interest"     font = "cg_16b" text = "go_bank_ro_interest"     position = { x = 20 y = 68 }  size = { x = 440 y = 18 } format = left alwaysTransparent = yes effect = "go_bank_readout_noop" }
+		effectButtonType = { name = "go_ro_interest_amt" font = "cg_16b" text = "go_bank_ro_interest_amt" position = { x = 20 y = 90 }  size = { x = 440 y = 18 } format = left alwaysTransparent = yes effect = "go_bank_readout_noop" }
+		effectButtonType = { name = "go_ro_liquid"       font = "cg_16b" text = "go_bank_ro_liquid"       position = { x = 20 y = 122 } size = { x = 440 y = 18 } format = left alwaysTransparent = yes effect = "go_bank_readout_noop" }
 
 		# ===================== ACTION BUTTONS =====================
 		# Deposit trade -> bank
@@ -62,8 +61,6 @@ guiTypes = {
 		effectButtonType = { name = "go_wd_1k"   quadTextureSprite = "GFX_button_150_24" font = "cg_16b" buttonText = "GO_BANK_WD_1K"   position = { x = 20  y = 224 } effect = "go_bank_withdraw_1000" clicksound = "confirmation_click" }
 		effectButtonType = { name = "go_wd_5k"   quadTextureSprite = "GFX_button_150_24" font = "cg_16b" buttonText = "GO_BANK_WD_5K"   position = { x = 165 y = 224 } effect = "go_bank_withdraw_5000" clicksound = "confirmation_click" }
 		effectButtonType = { name = "go_wd_all"  quadTextureSprite = "GFX_button_150_24" font = "cg_16b" buttonText = "GO_BANK_WD_ALL"  position = { x = 310 y = 224 } effect = "go_bank_withdraw_all"  clicksound = "confirmation_click" }
-		# Liquidate all shares
-		effectButtonType = { name = "go_liq_all" quadTextureSprite = "GFX_button_240_24" font = "cg_16b" buttonText = "GO_BANK_LIQ_ALL" position = { x = 120 y = 266 } effect = "go_bank_liquidate_all" clicksound = "confirmation_click" }
 
 		# ========== REQUIRED HIDDEN DIPLOMATIC EVENT ELEMENTS (verbatim from Hyperlane Master) ==========
 		instantTextBoxType = { name = "heading" font = "malgun_goth_24" position = { x = -9999 y = -9999 } }

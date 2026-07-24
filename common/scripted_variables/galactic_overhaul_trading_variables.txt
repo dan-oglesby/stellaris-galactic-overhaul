@@ -3,13 +3,15 @@
 # ============================================================================
 # SELL a resource when it's wasting: stockpile >= cap * @go_trade_sell_cap_frac
 #   AND income > 0, selling down to cap * @go_trade_sell_keep_frac.
-# BUY a resource when it's being lost: income < 0 AND stockpile <= @go_trade_buy_floor,
-#   buying as much as the spare energy affords at market price.
+# BUY (restock) a resource whenever it drops below cap * @go_trade_buy_target_frac,
+#   buying up toward that reserve each month (rate- and affordability-limited),
+#   REGARDLESS of income sign, so bursty consumers like alloys never run dry.
 
 @go_trade_sell_cap_frac   = 0.95    # "near cap": sell once stockpile reaches this fraction of the cap
 @go_trade_sell_keep_frac  = 0.80    # sell the surplus down to this fraction of the cap
-@go_trade_buy_floor       = 500     # "near zero": buy once a losing resource drops to/below this
-@go_trade_max_per_month   = 1000    # max units traded per resource per month (rate limit)
+@go_trade_buy_target_frac = 0.25    # RESTOCK target: keep each commodity at least this fraction of its cap in stock
+@go_trade_buy_floor       = 500     # (legacy, no longer referenced - superseded by @go_trade_buy_target_frac)
+@go_trade_max_per_month   = 1000    # max units traded per resource per month (rate limit; also caps restocking)
 @go_trade_energy_floor    = 2000    # never spend energy below this reserve when buying
 
 # Simulated market spread/fee.

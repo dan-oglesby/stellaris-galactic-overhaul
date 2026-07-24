@@ -35,9 +35,10 @@ choose_galactic_market_host = {
 # SELL when a resource is going to waste: stockpile is near its CAP (>= max *
 #   @go_trade_sell_cap_frac) AND income is positive (overflow being lost) ->
 #   sell the surplus down to max * @go_trade_sell_keep_frac.
-# BUY when a resource is being lost: income is negative AND stockpile is near
-#   zero (<= @go_trade_buy_floor) -> buy as much as the spare energy can afford
-#   at the current market price (capped per month).
+# BUY (restock) whenever a resource is below its reserve target (< max *
+#   @go_trade_buy_target_frac) -> buy up TOWARD that reserve, regardless of income
+#   sign, capped per month and by spare trade. This keeps bursty consumers (alloys)
+#   topped up instead of only reacting once they are already near empty and bleeding.
 # Trades at the live fee-free market price * a simulated fee * a price-impact
 # penalty that grows with accumulated trade pressure. Reads cap via
 # export_resource_maximum_to_variable and income via export_resource_income_to_variable.
@@ -77,6 +78,10 @@ galactic_overhaul_trade_resource = {
 	set_variable = { which = go_t_sellthresh value = go_t_max }
 	multiply_variable = { which = go_t_sellthresh value = @go_trade_sell_cap_frac }
 
+	# restock target level = cap * buy_target_frac (buy up to here when below it)
+	set_variable = { which = go_t_buytarget value = go_t_max }
+	multiply_variable = { which = go_t_buytarget value = @go_trade_buy_target_frac }
+
 	# ===================== SELL: near cap AND surplus income =====================
 	if = {
 		limit = {
@@ -105,17 +110,27 @@ galactic_overhaul_trade_resource = {
 			set_variable = { which = go_t_action value = 1 }
 		}
 	}
-	# ===================== BUY: losing it AND near zero =====================
+	# ===================== BUY: restock toward the reserve target =====================
+	# Whenever stock is below cap * buy_target_frac, buy up TOWARD that reserve so bursty
+	# consumers (alloys, especially) don't run dry - independent of income sign.
+	# Amount bought = min( target - stock, per-month cap, what spare trade can afford ).
 	else_if = {
 		limit = {
 			check_variable = { which = go_t_price value > 0 }
-			check_variable = { which = go_t_income value < 0 }
-			check_variable = { which = go_t_stock value <= @go_trade_buy_floor }
+			check_variable = { which = go_t_max value > 0 }
+			check_variable = { which = go_t_stock value < go_t_buytarget }
 		}
-		# spare energy above the reserve
+		# how far below the reserve we are = the amount we want to buy
+		set_variable = { which = go_t_amt value = go_t_buytarget }
+		subtract_variable = { which = go_t_amt value = go_t_stock }
+		# rate limit per month
+		if = {
+			limit = { check_variable = { which = go_t_amt value > @go_trade_max_per_month } }
+			set_variable = { which = go_t_amt value = @go_trade_max_per_month }
+		}
+		# spare trade above the reserve, and the per-unit cost
 		export_resource_stockpile_to_variable = { resource = trade variable = go_t_energy }
 		subtract_variable = { which = go_t_energy value = @go_trade_energy_floor }
-		# per-unit cost = eff price * buy fee
 		set_variable = { which = go_t_unit value = go_t_eff }
 		multiply_variable = { which = go_t_unit value = @go_trade_buy_feemult }
 		if = {
@@ -123,12 +138,12 @@ galactic_overhaul_trade_resource = {
 				check_variable = { which = go_t_energy value > 0 }
 				check_variable = { which = go_t_unit value > 0 }
 			}
-			# buy as much as the spare energy affords, capped per month
-			set_variable = { which = go_t_amt value = go_t_energy }
-			divide_variable = { which = go_t_amt value = go_t_unit }
+			# cap the buy by what the spare trade can actually afford
+			set_variable = { which = go_t_afford value = go_t_energy }
+			divide_variable = { which = go_t_afford value = go_t_unit }
 			if = {
-				limit = { check_variable = { which = go_t_amt value > @go_trade_max_per_month } }
-				set_variable = { which = go_t_amt value = @go_trade_max_per_month }
+				limit = { check_variable = { which = go_t_amt value > go_t_afford } }
+				set_variable = { which = go_t_amt value = go_t_afford }
 			}
 			if = {
 				limit = { check_variable = { which = go_t_amt value > 0 } }
@@ -218,9 +233,11 @@ galactic_overhaul_trade_resource = {
 	# go_t_action/amt/stock/max/income/price left set for galactic_overhaul.2 to log, cleared there
 	clear_variable = go_t_eff
 	clear_variable = go_t_sellthresh
+	clear_variable = go_t_buytarget
 	clear_variable = go_t_keep
 	clear_variable = go_t_gain
 	clear_variable = go_t_cost
 	clear_variable = go_t_energy
 	clear_variable = go_t_unit
+	clear_variable = go_t_afford
 }

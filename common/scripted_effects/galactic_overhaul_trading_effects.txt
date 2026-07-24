@@ -222,6 +222,7 @@ galactic_overhaul_trade_resource = {
 			limit = {
 				check_variable = { which = go_t_price value > go_t_hi }
 				check_variable = { which = go_t_stock value > @go_opp_sell_floor }
+				check_variable = { which = go_t_tradefull value = 0 }
 			}
 			set_variable = { which = go_t_amt value = go_t_stock }
 			subtract_variable = { which = go_t_amt value = @go_opp_sell_floor }

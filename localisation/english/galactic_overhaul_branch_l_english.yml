@@ -1,0 +1,12 @@
+﻿l_english:
+ policy_branch_office_automation:0 "Branch Office Automation"
+ policy_branch_office_automation_desc:0 "Delegate your corporate expansion. When active, a monthly sweep opens branch offices on qualifying colonies of empires you have the right relationship with (commercial pact, federation, or subject), and builds the most beneficial holding on the offices you own — favouring the holdings your civics supercharge (which grant extra Trader jobs at your capital), then whatever your economy is short on. Pays the real influence and mineral costs. Requires a Corporate authority and the MegaCorp DLC."
+ branch_office_automation:0 "Branch Office Automation"
+ branch_office_automation_desc:0 "Automatically expands and develops your branch offices, paying real costs."
+
+ go_bo_off:0 "Manual Franchising"
+ go_bo_off_desc:0 "You open branch offices and build their holdings by hand. No automation."
+ go_bo_on:0 "Corporate Expansion Division"
+ go_bo_on_desc:0 "A dedicated division opens branch offices on qualifying colonies and fills them with the most beneficial holdings each month. It prioritises holdings boosted by your government civics (extra capital Trader jobs), then your empire's resource shortfalls, then trade. Pays the real influence + mineral costs and is rate-limited per month."
+
+ go_branch_active_name:0 "Branch Office Automation"

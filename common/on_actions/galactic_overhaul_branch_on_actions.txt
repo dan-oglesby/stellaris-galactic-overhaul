@@ -1,0 +1,6 @@
+# Branch Office Automation monthly sweep (merges additively into the country pulse).
+on_monthly_pulse_country = {
+	events = {
+		go_branch.1
+	}
+}

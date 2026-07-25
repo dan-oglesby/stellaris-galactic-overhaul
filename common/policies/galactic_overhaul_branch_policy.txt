@@ -1,0 +1,35 @@
+# "Branch Office Automation" - empire-wide megacorp policy (player QoL).
+# When On, galactic_overhaul_branch.1 runs a monthly sweep that opens branch offices
+# on qualifying colonies and builds the most beneficial holding on offices you own,
+# paying the real influence/mineral costs. Megacorp-only (requires MegaCorp DLC).
+branch_office_automation = {
+	potential = {
+		is_country_type = default
+		authority = { value = auth_corporate }
+		has_megacorp = yes
+	}
+
+	allow = {
+		always = yes
+	}
+
+	# Default: off (you place branch offices and holdings by hand).
+	option = {
+		name = "go_bo_off"
+		icon = "GFX_diplomatic_stance_withdrawn"
+		ai_weight = {
+			weight = 100	# AI megacorps keep manual behaviour by default.
+		}
+	}
+
+	option = {
+		name = "go_bo_on"
+		icon = "GFX_diplomatic_stance_mercantile"
+		policy_flags = {
+			go_branch_active
+		}
+		ai_weight = {
+			weight = 0
+		}
+	}
+}

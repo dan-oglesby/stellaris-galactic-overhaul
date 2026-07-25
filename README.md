@@ -2,7 +2,7 @@
 
 A multi-feature **economic & automation overhaul** for **Stellaris 4.4 "Pegasus"**.
 
-`version 0.20.1` · `supported_version 4.4.*` · tags: Economy, Gameplay
+`version 0.21.0` · `supported_version 4.4.*` · tags: Economy, Gameplay
 
 ## Features
 
@@ -12,6 +12,7 @@ A multi-feature **economic & automation overhaul** for **Stellaris 4.4 "Pegasus"
 - **Smart Build** — construction ships automatically claim outposts, build **mining/research stations** on unserviced deposits (deficit-first), and build megastructures (hyper relays, gateways, orbital rings, habitats), paying real costs.
 - **Auto-Colonization** — automatically builds and dispatches colony ships to colonizable worlds in your borders.
 - **Science Automation** — keeps science ships crewed by recruiting/assigning scientists.
+- **Branch Office Automation** (megacorp) — an empire-wide policy that opens branch offices on qualifying colonies (of empires you have a commercial pact / federation / subject relationship with) and builds the most beneficial holding on each: **prioritizing the holdings your civics supercharge** (which grant extra capital Trader jobs), then your empire's resource shortfalls, then trade. Pays the real influence + mineral costs, rate-limited per month. Requires Corporate authority + the MegaCorp DLC.
 - **Megacorp founding civics** — corporate empires can instantly found the Galactic Bank or Galactic Market galaxy-wide (with a popup for every empire); an option suppresses AI megacorps.
 - Custom resource (Banked Credits), a strongest-economy Galactic Market host override, and always-on debug logging.
 
@@ -23,7 +24,7 @@ Stellaris loads local mods via a `.mod` file in `Documents\Paradox Interactive\S
 2. Create `Documents\Paradox Interactive\Stellaris\mod\galactic_overhaul.mod`:
    ```
    name="Galactic Overhaul"
-   version="0.20.1"
+   version="0.21.0"
    tags={
        "Economy"
        "Gameplay"

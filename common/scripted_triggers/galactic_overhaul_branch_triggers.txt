@@ -1,0 +1,38 @@
+# ============================================================================
+# Branch Office Automation - gating triggers.
+# establish_branch_office is a RAW create (it does NOT enforce the vanilla
+# can_build_branch_office_on_colony game rule, which is not callable from script),
+# so we hand-mirror the important subset here.
+# ============================================================================
+
+# COUNTRY scope (this = a candidate HOST empire; root = the megacorp).
+# The relationship that lets root open a branch office on this empire's colonies.
+go_bo_host_relationship = {
+	is_country_type = default
+	is_gestalt = no
+	NOT = { is_same_value = root }
+	# fanatic purifiers won't host unless same species (they'd purge us)
+	OR = {
+		is_same_species = root
+		NOT = { has_valid_civic = civic_fanatic_purifiers }
+	}
+	# the actual "you may open a branch office here" relationship
+	OR = {
+		root = { is_criminal_syndicate = yes }   # crime corps skip the pact requirement
+		has_commercial_pact = root
+		is_in_federation_with = root
+		AND = { is_subject = yes overlord = { is_same_value = root } }
+	}
+}
+
+# PLANET scope (this = a candidate host colony; root = the megacorp). Assumes the
+# owner relationship was already checked at the country level.
+go_bo_colony_qualifies = {
+	is_colony = yes
+	has_branch_office = no
+	NOR = {
+		is_planet_class = pc_ai
+		is_planet_class = pc_gray_goo
+		is_planet_class = pc_cosmogenesis_world
+	}
+}

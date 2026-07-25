@@ -1,0 +1,21 @@
+# ============================================================================
+# Branch Office Automation - tunable constants
+# ============================================================================
+# Per-month rate limits (per empire) so the galaxy sweep can't spam.
+@go_bo_offices_per_month   = 2     # open at most this many NEW branch offices per month
+@go_bo_holdings_per_month  = 3     # build at most this many holdings per month
+
+# Real-cost parity (establish_branch_office / add_holding charge nothing on their
+# own, so we deduct manually and gate on affordability). Positive = the value used
+# for the affordability check; _neg = the same value for the add_resource spend.
+# The office cost is the vanilla base (BRANCH_OFFICE_INFLUENCE_COST_BASE = 75);
+# hyperlane-distance scaling is omitted for now.
+@go_bo_office_influence      = 75
+@go_bo_office_influence_neg  = -75
+
+# Representative holding cost (real branch buildings run ~10-25 influence + 500-800
+# minerals; using a single tunable figure for all of them).
+@go_bo_holding_influence     = 25
+@go_bo_holding_influence_neg = -25
+@go_bo_holding_minerals      = 500
+@go_bo_holding_minerals_neg  = -500

@@ -1,0 +1,83 @@
+namespace = go_branch
+
+# ============================================================================
+# go_branch.1 - Branch Office Automation monthly sweep (player megacorp only).
+# For each empire root has the right relationship with, scan its colonies and:
+#   - OPEN a branch office on a qualifying colony (rate-limited, influence paid), or
+#   - BUILD the most beneficial holding on an office root already owns (rate-limited,
+#     influence + minerals paid).
+# root stays the megacorp throughout the nested loops; 'this' is the host colony.
+# establish_branch_office / add_holding charge nothing on their own, so cost is
+# deducted manually (real-cost parity). Constants in the branch variables file.
+# ============================================================================
+country_event = {
+	id = go_branch.1
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		is_ai = no                          # player-only sweep (it's a QoL policy; also cheaper)
+		has_policy_flag = go_branch_active
+		authority = { value = auth_corporate }
+		has_megacorp = yes                  # MegaCorp DLC (host_has_dlc "Megacorp")
+	}
+
+	immediate = {
+		set_variable = { which = go_bo_obudget value = @go_bo_offices_per_month }
+		set_variable = { which = go_bo_hbudget value = @go_bo_holdings_per_month }
+		if = {
+			limit = { go_debug_on = yes }
+			log = "GALACTIC_OVERHAUL_BRANCH: [This.GetName] sweep start (offices=[This.go_bo_obudget] holdings=[This.go_bo_hbudget])"
+		}
+
+		every_country = {
+			limit = { go_bo_host_relationship = yes }   # this = host empire, root = megacorp
+			every_owned_planet = {                       # this = host colony, root = megacorp
+				limit = {
+					OR = {
+						AND = {
+							go_bo_colony_qualifies = yes
+							root = { check_variable = { which = go_bo_obudget value > 0 } }
+						}
+						AND = {
+							has_branch_office = root
+							free_branch_office_building_slots > 0
+							root = { check_variable = { which = go_bo_hbudget value > 0 } }
+						}
+					}
+				}
+				if = {
+					# ---- OPEN a new branch office ----
+					limit = {
+						go_bo_colony_qualifies = yes
+						root = { check_variable = { which = go_bo_obudget value > 0 } }
+						root = { resource_stockpile_compare = { resource = influence value >= @go_bo_office_influence } }
+					}
+					establish_branch_office = root
+					root = {
+						add_resource = { influence = @go_bo_office_influence_neg }
+						change_variable = { which = go_bo_obudget value = -1 }
+					}
+					if = {
+						limit = { root = { go_debug_on = yes } }
+						log = "GALACTIC_OVERHAUL_BRANCH: [Root.GetName] opened office on [This.GetName]"
+					}
+				}
+				else_if = {
+					# ---- BUILD a holding on root's existing office ----
+					limit = {
+						has_branch_office = root
+						free_branch_office_building_slots > 0
+						root = { check_variable = { which = go_bo_hbudget value > 0 } }
+						root = { resource_stockpile_compare = { resource = influence value >= @go_bo_holding_influence } }
+						root = { resource_stockpile_compare = { resource = minerals value >= @go_bo_holding_minerals } }
+					}
+					go_bo_build_best_holding = yes
+				}
+			}
+		}
+
+		clear_variable = go_bo_obudget
+		clear_variable = go_bo_hbudget
+	}
+}

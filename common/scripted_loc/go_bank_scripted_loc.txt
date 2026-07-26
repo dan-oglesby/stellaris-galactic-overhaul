@@ -7,3 +7,4 @@ defined_text = { name = GetGoBanked       value = value:go_disp_banked_sv }
 defined_text = { name = GetGoLiquid       value = value:go_disp_liquid_sv }
 defined_text = { name = GetGoInterestRate value = value:go_disp_interest_sv }
 defined_text = { name = GetGoInterestAmt  value = value:go_disp_interest_amt_sv }
+defined_text = { name = GetGoTradePnl    value = value:go_disp_pnl_sv }

@@ -87,6 +87,11 @@ galactic_overhaul_trade_resource = {
 		parameters = { resource = $RESOURCE$ amount = 1 trade_type = not_set }
 		variable = go_t_price
 	}
+	# Seed the opportunistic reference price on first sight of this resource. The EMA is
+	# maintained EVERY month (see the update at the end), not only on months when the
+	# safety desk stayed idle - otherwise the reference goes stale exactly while the desk
+	# is busy, and the buy-low/sell-high band drifts away from the real market.
+	if = { limit = { NOT = { is_variable_set = go_opp_mean_$RESOURCE$ } } set_variable = { which = go_opp_mean_$RESOURCE$ value = go_t_price } }
 	export_resource_stockpile_to_variable = { resource = $RESOURCE$ variable = go_t_stock }
 	export_resource_maximum_to_variable  = { resource = $RESOURCE$ variable = go_t_max }
 	export_resource_income_to_variable   = { resource = $RESOURCE$ variable = go_t_income }
@@ -108,6 +113,16 @@ galactic_overhaul_trade_resource = {
 	# restock target level = cap * buy_target_frac (buy up to here when below it)
 	set_variable = { which = go_t_buytarget value = go_t_max }
 	multiply_variable = { which = go_t_buytarget value = $TARGETFRAC$ }
+
+	# Opportunistic sells must never dip below the level the RESTOCK branch defends, or the
+	# two halves of this effect fight: opportunistic sells at the sell fee, restock buys the
+	# same units back at the buy fee next month, burning the spread every lap. Floor =
+	# max(@go_opp_sell_floor, restock target).
+	set_variable = { which = go_t_oppfloor value = @go_opp_sell_floor }
+	if = {
+		limit = { check_variable = { which = go_t_buytarget value > go_t_oppfloor } }
+		set_variable = { which = go_t_oppfloor value = go_t_buytarget }
+	}
 
 	# Is the TRADE pool near its own cap? Gate for selling: don't convert a soon-to-waste
 	# commodity into soon-to-waste trade. A near-full trade pool also signals there is
@@ -212,7 +227,6 @@ galactic_overhaul_trade_resource = {
 			check_variable = { which = go_t_action value = 0 }
 			check_variable = { which = go_t_price value > 0 }
 		}
-		if = { limit = { NOT = { is_variable_set = go_opp_mean_$RESOURCE$ } } set_variable = { which = go_opp_mean_$RESOURCE$ value = go_t_price } }
 		set_variable = { which = go_t_lo value = go_opp_mean_$RESOURCE$ }
 		multiply_variable = { which = go_t_lo value = @go_opp_buy_mult }
 		set_variable = { which = go_t_hi value = go_opp_mean_$RESOURCE$ }
@@ -227,7 +241,7 @@ galactic_overhaul_trade_resource = {
 			export_resource_stockpile_to_variable = { resource = trade variable = go_t_energy }
 			subtract_variable = { which = go_t_energy value = @go_trade_energy_floor }
 			set_variable = { which = go_t_unit value = go_t_eff }
-			multiply_variable = { which = go_t_unit value = @go_trade_buy_feemult }
+			multiply_variable = { which = go_t_unit value = @go_opp_buy_feemult }
 			if = {
 				limit = { check_variable = { which = go_t_energy value > 0 } check_variable = { which = go_t_unit value > 0 } }
 				set_variable = { which = go_t_amt value = go_t_energy }
@@ -244,6 +258,9 @@ galactic_overhaul_trade_resource = {
 					add_resource = { $RESOURCE$ = 1 mult = go_t_amt }
 					add_resource = { trade = -1 mult = go_t_cost }
 					change_variable = { which = go_pressure_$RESOURCE$ value = go_t_amt }
+					# running P&L of the active desk (trade out now, back in on the sell leg)
+					if = { limit = { NOT = { is_variable_set = go_opp_pnl } } set_variable = { which = go_opp_pnl value = 0 } }
+					subtract_variable = { which = go_opp_pnl value = go_t_cost }
 					set_variable = { which = go_t_action value = 3 }
 				}
 			}
@@ -252,35 +269,43 @@ galactic_overhaul_trade_resource = {
 		else_if = {
 			limit = {
 				check_variable = { which = go_t_price value > go_t_hi }
-				check_variable = { which = go_t_stock value > @go_opp_sell_floor }
+				check_variable = { which = go_t_stock value > go_t_oppfloor }
 				check_variable = { which = go_t_tradefull value = 0 }
 			}
 			set_variable = { which = go_t_amt value = go_t_stock }
-			subtract_variable = { which = go_t_amt value = @go_opp_sell_floor }
+			subtract_variable = { which = go_t_amt value = go_t_oppfloor }
 			if = { limit = { check_variable = { which = go_t_amt value > $MAXMONTH$ } } set_variable = { which = go_t_amt value = $MAXMONTH$ } }
 			if = {
 				limit = { check_variable = { which = go_t_amt value > 0 } }
 				set_variable = { which = go_t_gain value = go_t_amt }
 				multiply_variable = { which = go_t_gain value = go_t_eff }
-				multiply_variable = { which = go_t_gain value = @go_trade_sell_feemult }
+				multiply_variable = { which = go_t_gain value = @go_opp_sell_feemult }
 				add_resource = { $RESOURCE$ = -1 mult = go_t_amt }
 				add_resource = { trade = 1 mult = go_t_gain }
 				subtract_variable = { which = go_pressure_$RESOURCE$ value = go_t_amt }
+				# running P&L of the active desk
+				if = { limit = { NOT = { is_variable_set = go_opp_pnl } } set_variable = { which = go_opp_pnl value = 0 } }
+				change_variable = { which = go_opp_pnl value = go_t_gain }
 				set_variable = { which = go_t_action value = 4 }
 			}
 		}
 
-		# update the reference EMA: mean += alpha * (price - mean)
-		set_variable = { which = go_t_tmp value = go_t_price }
-		subtract_variable = { which = go_t_tmp value = go_opp_mean_$RESOURCE$ }
-		multiply_variable = { which = go_t_tmp value = @go_opp_alpha }
-		change_variable = { which = go_opp_mean_$RESOURCE$ value = go_t_tmp }
 		clear_variable = go_t_lo
 		clear_variable = go_t_hi
 		clear_variable = go_t_tmp
 	}
 
 	# go_t_action/amt/stock/max/income/price left set for galactic_overhaul.2 to log, cleared there
+	# Maintain the reference EMA unconditionally, AFTER this month's decision so the
+	# decision used the prior mean: mean += alpha * (price - mean).
+	if = {
+		limit = { check_variable = { which = go_t_price value > 0 } }
+		set_variable = { which = go_t_tmp value = go_t_price }
+		subtract_variable = { which = go_t_tmp value = go_opp_mean_$RESOURCE$ }
+		multiply_variable = { which = go_t_tmp value = @go_opp_alpha }
+		change_variable = { which = go_opp_mean_$RESOURCE$ value = go_t_tmp }
+	}
+
 	clear_variable = go_t_eff
 	clear_variable = go_t_sellthresh
 	clear_variable = go_t_buytarget
@@ -295,4 +320,5 @@ galactic_overhaul_trade_resource = {
 	clear_variable = go_t_tradehi
 	clear_variable = go_t_tradefull
 	clear_variable = go_t_head
+	clear_variable = go_t_oppfloor
 }

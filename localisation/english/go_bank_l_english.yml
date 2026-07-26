@@ -9,6 +9,7 @@
  go_bank_ro_interest:0     "§YInterest Rate:§!  [go_bank_player.GetGoInterestRate]% per month"
  go_bank_ro_interest_amt:0 "§YInterest (last month):§!  £trade£ [go_bank_player.GetGoInterestAmt]"
  go_bank_ro_liquid:0       "§YLiquid Trade:§!  £trade£ [go_bank_player.GetGoLiquid]"
+ go_bank_ro_pnl:0          "§YTrading Desk Profit:§!  £trade£ [go_bank_player.GetGoTradePnl]"
 
  GO_BANK_DEP_1K:0  "Deposit 1000"
  GO_BANK_DEP_5K:0  "Deposit 5000"

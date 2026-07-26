@@ -51,6 +51,7 @@ guiTypes = {
 		effectButtonType = { name = "go_ro_interest"     font = "cg_16b" text = "go_bank_ro_interest"     position = { x = 20 y = 68 }  size = { x = 440 y = 18 } format = left alwaysTransparent = yes effect = "go_bank_readout_noop" }
 		effectButtonType = { name = "go_ro_interest_amt" font = "cg_16b" text = "go_bank_ro_interest_amt" position = { x = 20 y = 90 }  size = { x = 440 y = 18 } format = left alwaysTransparent = yes effect = "go_bank_readout_noop" }
 		effectButtonType = { name = "go_ro_liquid"       font = "cg_16b" text = "go_bank_ro_liquid"       position = { x = 20 y = 122 } size = { x = 440 y = 18 } format = left alwaysTransparent = yes effect = "go_bank_readout_noop" }
+		effectButtonType = { name = "go_ro_pnl"          font = "cg_16b" text = "go_bank_ro_pnl"          position = { x = 20 y = 144 } size = { x = 440 y = 18 } format = left alwaysTransparent = yes effect = "go_bank_readout_noop" }
 
 		# ===================== ACTION BUTTONS =====================
 		# Deposit trade -> bank

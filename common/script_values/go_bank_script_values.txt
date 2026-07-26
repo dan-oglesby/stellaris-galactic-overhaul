@@ -40,3 +40,12 @@ go_disp_interest_amt_sv = {
 		is_variable_set = go_last_interest
 	}
 }
+
+# cumulative trade generated (or lost) by the Opportunistic desk's active trading
+go_disp_pnl_sv = {
+	base = 0
+	modifier = {
+		add = go_opp_pnl
+		is_variable_set = go_opp_pnl
+	}
+}

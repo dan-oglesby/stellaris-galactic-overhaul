@@ -15,9 +15,25 @@ country_event = {
 	id = galactic_overhaul_smartbuild.10
 	hide_window = yes
 	is_triggered_only = yes
+
+	# PERF: this event previously had NO trigger, so EVERY country in the galaxy ran
+	# `every_owned_fleet` every month. AI empires never hold go_smartbuild_active
+	# (the policy option is ai_weight = 0), so they always fell into the release
+	# branch and scanned every fleet they own looking for a flag that can never be
+	# set - pure waste, and the largest avoidable cost in the mod.
+	# Both checks below are O(1) flag lookups: run only if the policy is ON, or if we
+	# previously enrolled ships and now need to release them.
+	trigger = {
+		OR = {
+			has_policy_flag = go_smartbuild_active
+			has_country_flag = go_smartbuild_enrolled
+		}
+	}
+
 	immediate = {
 		if = {
 			limit = { has_policy_flag = go_smartbuild_active }
+			set_country_flag = go_smartbuild_enrolled
 			every_owned_fleet = {
 				limit = { is_ship_size = constructor NOT = { has_fleet_flag = go_smartbuild_ship } }
 				set_fleet_flag = go_smartbuild_ship
@@ -34,6 +50,8 @@ country_event = {
 				clear_orders = yes
 				if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_SMARTBUILD: released constructor [This.GetName]" }
 			}
+			# release done - stop this event firing until the policy is turned back on
+			remove_country_flag = go_smartbuild_enrolled
 		}
 	}
 }
@@ -155,7 +173,7 @@ fleet_event = {
 								orbit_planet = this
 								effect = {
 									id = gbsb.1.e.outpost_p
-									root = { set_fleet_flag = go_smartbuild_blocked_fleet }
+									root = { set_timed_fleet_flag = { flag = go_smartbuild_blocked_fleet days = @go_sb_blocked_max_days } }
 									planet_event = { id = galactic_overhaul_smartbuild.2 days = @go_sb_outpost_build_time }
 								}
 							}
@@ -192,7 +210,7 @@ fleet_event = {
 								orbit_planet = this
 								effect = {
 									id = gbsb.1.e.relay_p
-									root = { set_fleet_flag = go_smartbuild_blocked_fleet }
+									root = { set_timed_fleet_flag = { flag = go_smartbuild_blocked_fleet days = @go_sb_blocked_max_days } }
 									planet_event = { id = galactic_overhaul_smartbuild.3 days = @go_sb_relay_build_time }
 								}
 							}
@@ -229,7 +247,7 @@ fleet_event = {
 								orbit_planet = this
 								effect = {
 									id = gbsb.1.e.gateway_p
-									root = { set_fleet_flag = go_smartbuild_blocked_fleet }
+									root = { set_timed_fleet_flag = { flag = go_smartbuild_blocked_fleet days = @go_sb_blocked_max_days } }
 									planet_event = { id = galactic_overhaul_smartbuild.4 days = @go_sb_gateway_build_time }
 								}
 							}
@@ -266,7 +284,7 @@ fleet_event = {
 								orbit_planet = this
 								effect = {
 									id = gbsb.1.e.ring_p
-									root = { set_fleet_flag = go_smartbuild_blocked_fleet }
+									root = { set_timed_fleet_flag = { flag = go_smartbuild_blocked_fleet days = @go_sb_blocked_max_days } }
 									planet_event = { id = galactic_overhaul_smartbuild.5 days = @go_sb_ring_build_time }
 								}
 							}
@@ -303,7 +321,7 @@ fleet_event = {
 								orbit_planet = this
 								effect = {
 									id = gbsb.1.e.habitat_p
-									root = { set_fleet_flag = go_smartbuild_blocked_fleet }
+									root = { set_timed_fleet_flag = { flag = go_smartbuild_blocked_fleet days = @go_sb_blocked_max_days } }
 									planet_event = { id = galactic_overhaul_smartbuild.6 days = @go_sb_habitat_build_time }
 								}
 							}

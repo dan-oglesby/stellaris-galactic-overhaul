@@ -165,7 +165,11 @@ country_event = {
 		if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_TRADE: [This.GetName] volatile_motes act=[This.go_t_action] amt=[This.go_t_amt] stock=[This.go_t_stock] cap=[This.go_t_max] inc=[This.go_t_income] price=[This.go_t_price]" }
 		# Opportunistic desk: charge a monthly management fee (active-trading costs).
 		if = {
-			limit = { has_policy_flag = go_trade_opportunistic }
+			limit = {
+				has_policy_flag = go_trade_opportunistic
+				# don't drive trade negative just to pay the desk fee
+				resource_stockpile_compare = { resource = trade value >= @go_opp_fee }
+			}
 			add_resource = { trade = @go_opp_fee_neg }
 			if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_TRADE: [This.GetName] opportunistic desk fee charged" }
 		}
@@ -182,7 +186,7 @@ country_event = {
 # galactic_overhaul.3 - Monthly automated taxation of private commerce (trade value).
 # Fired from on_monthly_pulse_country for empires with a Taxation Doctrine stance.
 # Drifts go_tax_rate toward the stance's target, then collects rate * trade income
-# as energy. go_tax_rate persists (it is the drifting state). Tune in
+# as trade. go_tax_rate persists (it is the drifting state). Tune in
 # common/scripted_variables/galactic_overhaul_tax_variables.txt.
 # ============================================================================
 country_event = {
@@ -232,7 +236,7 @@ country_event = {
 			}
 		}
 
-		# revenue = current trade income * tax rate -> energy
+		# revenue = current trade income * tax rate -> trade
 		export_resource_income_to_variable = { resource = trade variable = go_tax_base }
 		set_variable = { which = go_tax_rev value = go_tax_base }
 		multiply_variable = { which = go_tax_rev value = go_tax_rate }

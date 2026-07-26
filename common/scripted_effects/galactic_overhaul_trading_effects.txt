@@ -4,6 +4,8 @@
 # Loads after vanilla, so this wins (last-loaded override).
 # ============================================================================
 choose_galactic_market_host = {
+	# PASS 1 - the vanilla path: choose among empires flagged eligible by an in-progress
+	# Community market nomination. Unchanged behaviour for vanilla's own founding flow.
 	ordered_country = {
 		limit = {
 			is_country_type = default
@@ -20,6 +22,31 @@ choose_galactic_market_host = {
 		random_owned_planet = {
 			limit = { is_market_nominee_planet = yes }
 			save_global_event_target_as = market_founder_planet
+		}
+	}
+	# PASS 2 - fallback for founding OUTSIDE a nomination (e.g. the megacorp Market
+	# Authority civic at game start). Vanilla only sets market_nomination_eligible during
+	# a Community nomination, so pass 1 matches nobody then and the market would be
+	# "founded" with no host at all. Only runs if pass 1 found none, so it never changes
+	# the vanilla outcome.
+	if = {
+		limit = { NOT = { exists = event_target:market_founder } }
+		ordered_country = {
+			limit = {
+				is_country_type = default
+				any_owned_planet = { is_market_nominee_planet = yes }
+			}
+			order_by = value:go_economy_score
+			position = 0
+			save_global_event_target_as = market_founder
+			if = {
+				limit = { go_debug_on = yes }
+				log = "GALACTIC_OVERHAUL: galactic market host chosen via fallback (no nomination in progress)"
+			}
+			random_owned_planet = {
+				limit = { is_market_nominee_planet = yes }
+				save_global_event_target_as = market_founder_planet
+			}
 		}
 	}
 	every_playable_country = {
@@ -206,6 +233,10 @@ galactic_overhaul_trade_resource = {
 				set_variable = { which = go_t_amt value = go_t_energy }
 				divide_variable = { which = go_t_amt value = go_t_unit }
 				if = { limit = { check_variable = { which = go_t_amt value > $MAXMONTH$ } } set_variable = { which = go_t_amt value = $MAXMONTH$ } }
+				# don't buy past the storage cap - the overflow would be wasted outright
+				set_variable = { which = go_t_head value = go_t_max }
+				subtract_variable = { which = go_t_head value = go_t_stock }
+				if = { limit = { check_variable = { which = go_t_amt value > go_t_head } } set_variable = { which = go_t_amt value = go_t_head } }
 				if = {
 					limit = { check_variable = { which = go_t_amt value > 0 } }
 					set_variable = { which = go_t_cost value = go_t_amt }
@@ -263,4 +294,5 @@ galactic_overhaul_trade_resource = {
 	clear_variable = go_t_trademax
 	clear_variable = go_t_tradehi
 	clear_variable = go_t_tradefull
+	clear_variable = go_t_head
 }

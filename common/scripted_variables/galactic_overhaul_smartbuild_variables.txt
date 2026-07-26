@@ -48,3 +48,9 @@
 # ---- Mining / research stations (instant build; alloy cost approximate, tune to taste) ----
 @go_sb_station_alloys      = 100
 @go_sb_station_alloys_neg  = -100
+
+# Safety valve: a constructor is flagged 'busy' while it travels to and completes a
+# job. If that job never completes (ship destroyed, target taken, planet changed hands)
+# a PLAIN flag would strand the ship forever. Time-limit it to slightly longer than the
+# longest build delay (habitat, 1800 days) so a stuck constructor self-heals.
+@go_sb_blocked_max_days = 2000

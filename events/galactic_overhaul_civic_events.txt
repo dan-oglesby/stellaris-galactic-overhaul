@@ -14,10 +14,18 @@ country_event = {
 	hide_window = yes
 	is_triggered_only = yes
 
+	# PERF: also require the matching institution to be UNfounded, so once both exist this
+	# event stops firing entirely instead of re-entering `immediate` every month forever.
 	trigger = {
 		OR = {
-			has_civic = civic_go_banking_charter
-			has_civic = civic_go_market_authority
+			AND = {
+				has_civic = civic_go_banking_charter
+				NOT = { has_global_flag = galactic_overhaul_chartered }
+			}
+			AND = {
+				has_civic = civic_go_market_authority
+				NOT = { has_global_flag = galactic_market_founded }
+			}
 		}
 	}
 
@@ -42,13 +50,26 @@ country_event = {
 				has_civic = civic_go_market_authority
 				NOT = { has_global_flag = galactic_market_founded }
 			}
+			# Pick a host FIRST, and only latch "founded" if one was actually selected.
+			# The host override filters on market_nomination_eligible, which vanilla sets
+			# only during a Community market nomination - so at game start nobody has it
+			# and no host is chosen. Latching the flag unconditionally (as this did) left
+			# a permanently host-less market that could never be founded again, because
+			# the guard above blocks every retry. Now an unsuccessful attempt simply
+			# leaves the flag unset and retries next month.
 			choose_galactic_market_host = yes
-			set_global_flag = galactic_market_founded
-			enable_galactic_market = yes
-			if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL: [This.GetName] megacorp authority FOUNDED the Galactic Market galaxy-wide" }
-			every_country = {
-				limit = { is_country_type = default }
-				country_event = { id = galactic_overhaul_civic.3 }
+			if = {
+				limit = { exists = event_target:market_founder }
+				set_global_flag = galactic_market_founded
+				enable_galactic_market = yes
+				if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL: [This.GetName] megacorp authority FOUNDED the Galactic Market galaxy-wide" }
+				every_country = {
+					limit = { is_country_type = default }
+					country_event = { id = galactic_overhaul_civic.3 }
+				}
+			}
+			else = {
+				if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL: market founding deferred - no eligible host yet (will retry)" }
 			}
 		}
 	}

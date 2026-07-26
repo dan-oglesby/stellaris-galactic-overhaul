@@ -31,7 +31,18 @@ country_event = {
 		}
 
 		every_country = {
-			limit = { go_bo_host_relationship = yes }   # this = host empire, root = megacorp
+			limit = {
+				# PERF: stop walking the galaxy once BOTH monthly budgets are spent. This is
+				# checked first and is two O(1) variable reads, so it short-circuits before
+				# the relationship test and before descending into every_owned_planet.
+				root = {
+					OR = {
+						check_variable = { which = go_bo_obudget value > 0 }
+						check_variable = { which = go_bo_hbudget value > 0 }
+					}
+				}
+				go_bo_host_relationship = yes              # this = host empire, root = megacorp
+			}
 			every_owned_planet = {                       # this = host colony, root = megacorp
 				limit = {
 					OR = {

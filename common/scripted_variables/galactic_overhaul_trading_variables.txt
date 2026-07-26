@@ -36,4 +36,5 @@
 # (opportunistic per-month rate now uses the same per-call MAXMONTH param as the
 #  cap/income logic, so a resource class has ONE rate limit across all trade paths)
 @go_opp_sell_floor     = 1000    # keep at least this many units when opportunistic-selling
+@go_opp_fee              = 200     # desk fee magnitude (for the affordability check)
 @go_opp_fee_neg        = -200    # monthly desk management fee (trade), reflecting investing costs

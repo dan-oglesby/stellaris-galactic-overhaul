@@ -3,17 +3,23 @@
 # ============================================================================
 # SELL a resource when it's wasting: stockpile >= cap * @go_trade_sell_cap_frac
 #   AND income > 0, selling down to cap * @go_trade_sell_keep_frac.
-# BUY (restock) a resource whenever it drops below cap * @go_trade_buy_target_frac,
+# BUY (restock) a resource whenever it drops below cap * TARGETFRAC (a per-call param),
 #   buying up toward that reserve each month (rate- and affordability-limited),
 #   REGARDLESS of income sign, so bursty consumers like alloys never run dry.
+
+#
+# PER-RESOURCE-CLASS TUNING lives at the CALL SITES in events/galactic_overhaul_events.txt
+# (galactic_overhaul.2), because basics and strategics need very different bands:
+#   basics     (energy/minerals/food/alloys/consumer_goods): TARGETFRAC 0.25  MAXMONTH 1000
+#   strategics (exotic_gases/rare_crystals/volatile_motes):  TARGETFRAC 0.05  MAXMONTH 100
+# Strategics share the same 15,000 storage cap as minerals but are consumed in tens per
+# month and cost far more per unit, so a 25% target (3,750 units) would be absurd and
+# would drain the treasury - hence the much smaller 5% reserve and gentler refill rate.
 
 @go_trade_sell_cap_frac   = 0.90    # "near cap": sell once stockpile reaches this fraction of the cap
 @go_trade_sell_keep_frac  = 0.80    # sell the surplus down to this fraction of the cap
 @go_trade_full_frac       = 0.90    # SELL GATE: skip selling if TRADE itself is >= this fraction of its cap (proceeds would waste / nothing to buy)
-@go_trade_buy_target_frac = 0.25    # RESTOCK target: keep each commodity at least this fraction of its cap in stock
-@go_trade_buy_floor       = 500     # (legacy, no longer referenced - superseded by @go_trade_buy_target_frac)
-@go_trade_max_per_month   = 1000    # max units traded per resource per month (rate limit; also caps restocking)
-@go_trade_energy_floor    = 2000    # never spend energy below this reserve when buying
+@go_trade_energy_floor    = 2000    # never spend trade below this reserve when buying
 
 # Simulated market spread/fee.
 @go_trade_buy_feemult     = 1.3
@@ -27,6 +33,7 @@
 @go_opp_alpha          = 0.1     # EMA smoothing for the reference price
 @go_opp_buy_mult       = 0.9     # buy when price < this * mean (cheap)
 @go_opp_sell_mult      = 1.1     # sell when price > this * mean (dear)
-@go_opp_max_per_month  = 1000    # max units per resource per month (opportunistic)
+# (opportunistic per-month rate now uses the same per-call MAXMONTH param as the
+#  cap/income logic, so a resource class has ONE rate limit across all trade paths)
 @go_opp_sell_floor     = 1000    # keep at least this many units when opportunistic-selling
 @go_opp_fee_neg        = -200    # monthly desk management fee (trade), reflecting investing costs

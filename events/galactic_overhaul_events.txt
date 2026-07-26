@@ -144,16 +144,25 @@ country_event = {
 		# Run the trade engine per resource, then log the result HERE (event scope, where
 		# [This.x] macros resolve - they do not render inside the scripted effect).
 		# act: 0 = no action, 1 = sold surplus, 2 = bought to cover a deficit.
-		galactic_overhaul_trade_resource = { RESOURCE = energy }
+		# --- Basic resources: reserve target 25% of cap, up to 1000/month ---
+		galactic_overhaul_trade_resource = { RESOURCE = energy TARGETFRAC = 0.25 MAXMONTH = 1000 }
 		if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_TRADE: [This.GetName] energy act=[This.go_t_action] amt=[This.go_t_amt] stock=[This.go_t_stock] cap=[This.go_t_max] inc=[This.go_t_income] price=[This.go_t_price]" }
-		galactic_overhaul_trade_resource = { RESOURCE = minerals }
+		galactic_overhaul_trade_resource = { RESOURCE = minerals TARGETFRAC = 0.25 MAXMONTH = 1000 }
 		if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_TRADE: [This.GetName] minerals act=[This.go_t_action] amt=[This.go_t_amt] stock=[This.go_t_stock] cap=[This.go_t_max] inc=[This.go_t_income] price=[This.go_t_price]" }
-		galactic_overhaul_trade_resource = { RESOURCE = food }
+		galactic_overhaul_trade_resource = { RESOURCE = food TARGETFRAC = 0.25 MAXMONTH = 1000 }
 		if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_TRADE: [This.GetName] food act=[This.go_t_action] amt=[This.go_t_amt] stock=[This.go_t_stock] cap=[This.go_t_max] inc=[This.go_t_income] price=[This.go_t_price]" }
-		galactic_overhaul_trade_resource = { RESOURCE = alloys }
+		galactic_overhaul_trade_resource = { RESOURCE = alloys TARGETFRAC = 0.25 MAXMONTH = 1000 }
 		if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_TRADE: [This.GetName] alloys act=[This.go_t_action] amt=[This.go_t_amt] stock=[This.go_t_stock] cap=[This.go_t_max] inc=[This.go_t_income] price=[This.go_t_price]" }
-		galactic_overhaul_trade_resource = { RESOURCE = consumer_goods }
+		galactic_overhaul_trade_resource = { RESOURCE = consumer_goods TARGETFRAC = 0.25 MAXMONTH = 1000 }
 		if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_TRADE: [This.GetName] consumer_goods act=[This.go_t_action] amt=[This.go_t_amt] stock=[This.go_t_stock] cap=[This.go_t_max] inc=[This.go_t_income] price=[This.go_t_price]" }
+		# --- Strategic resources: same 15k cap but consumed in tens and far pricier,
+		#     so hold a much smaller reserve (5% = 750) and refill gently (100/month). ---
+		galactic_overhaul_trade_resource = { RESOURCE = exotic_gases TARGETFRAC = 0.05 MAXMONTH = 100 }
+		if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_TRADE: [This.GetName] exotic_gases act=[This.go_t_action] amt=[This.go_t_amt] stock=[This.go_t_stock] cap=[This.go_t_max] inc=[This.go_t_income] price=[This.go_t_price]" }
+		galactic_overhaul_trade_resource = { RESOURCE = rare_crystals TARGETFRAC = 0.05 MAXMONTH = 100 }
+		if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_TRADE: [This.GetName] rare_crystals act=[This.go_t_action] amt=[This.go_t_amt] stock=[This.go_t_stock] cap=[This.go_t_max] inc=[This.go_t_income] price=[This.go_t_price]" }
+		galactic_overhaul_trade_resource = { RESOURCE = volatile_motes TARGETFRAC = 0.05 MAXMONTH = 100 }
+		if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_TRADE: [This.GetName] volatile_motes act=[This.go_t_action] amt=[This.go_t_amt] stock=[This.go_t_stock] cap=[This.go_t_max] inc=[This.go_t_income] price=[This.go_t_price]" }
 		# Opportunistic desk: charge a monthly management fee (active-trading costs).
 		if = {
 			limit = { has_policy_flag = go_trade_opportunistic }

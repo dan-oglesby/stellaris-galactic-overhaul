@@ -3,10 +3,14 @@
 # on qualifying colonies and builds the most beneficial holding on offices you own,
 # paying the real influence/mineral costs. Megacorp-only (requires MegaCorp DLC).
 branch_office_automation = {
+	# NOTE: use is_megacorp (+ has_megacorp for the DLC check) - that is the pair vanilla
+	# policies use (00_policies.txt:443-447). `authority = { value = auth_corporate }` is a
+	# CIVIC-context trigger; no vanilla POLICY uses it, and it silently suppressed this
+	# whole policy (same failure mode as is_ai in a decision potential).
 	potential = {
 		is_country_type = default
-		authority = { value = auth_corporate }
-		has_megacorp = yes
+		has_megacorp = yes      # MegaCorp DLC present
+		is_megacorp = yes       # corporate authority
 	}
 
 	allow = {

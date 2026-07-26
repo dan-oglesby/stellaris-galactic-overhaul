@@ -36,7 +36,7 @@ choose_galactic_market_host = {
 #   @go_trade_sell_cap_frac) AND income is positive (overflow being lost) ->
 #   sell the surplus down to max * @go_trade_sell_keep_frac.
 # BUY (restock) whenever a resource is below its reserve target (< max *
-#   @go_trade_buy_target_frac) -> buy up TOWARD that reserve, regardless of income
+#   $TARGETFRAC$) -> buy up TOWARD that reserve, regardless of income
 #   sign, capped per month and by spare trade. This keeps bursty consumers (alloys)
 #   topped up instead of only reacting once they are already near empty and bleeding.
 # Trades at the live fee-free market price * a simulated fee * a price-impact
@@ -80,7 +80,7 @@ galactic_overhaul_trade_resource = {
 
 	# restock target level = cap * buy_target_frac (buy up to here when below it)
 	set_variable = { which = go_t_buytarget value = go_t_max }
-	multiply_variable = { which = go_t_buytarget value = @go_trade_buy_target_frac }
+	multiply_variable = { which = go_t_buytarget value = $TARGETFRAC$ }
 
 	# Is the TRADE pool near its own cap? Gate for selling: don't convert a soon-to-waste
 	# commodity into soon-to-waste trade. A near-full trade pool also signals there is
@@ -114,8 +114,8 @@ galactic_overhaul_trade_resource = {
 		set_variable = { which = go_t_amt value = go_t_stock }
 		subtract_variable = { which = go_t_amt value = go_t_keep }
 		if = {
-			limit = { check_variable = { which = go_t_amt value > @go_trade_max_per_month } }
-			set_variable = { which = go_t_amt value = @go_trade_max_per_month }
+			limit = { check_variable = { which = go_t_amt value > $MAXMONTH$ } }
+			set_variable = { which = go_t_amt value = $MAXMONTH$ }
 		}
 		if = {
 			limit = { check_variable = { which = go_t_amt value > 0 } }
@@ -143,8 +143,8 @@ galactic_overhaul_trade_resource = {
 		subtract_variable = { which = go_t_amt value = go_t_stock }
 		# rate limit per month
 		if = {
-			limit = { check_variable = { which = go_t_amt value > @go_trade_max_per_month } }
-			set_variable = { which = go_t_amt value = @go_trade_max_per_month }
+			limit = { check_variable = { which = go_t_amt value > $MAXMONTH$ } }
+			set_variable = { which = go_t_amt value = $MAXMONTH$ }
 		}
 		# spare trade above the reserve, and the per-unit cost
 		export_resource_stockpile_to_variable = { resource = trade variable = go_t_energy }
@@ -205,7 +205,7 @@ galactic_overhaul_trade_resource = {
 				limit = { check_variable = { which = go_t_energy value > 0 } check_variable = { which = go_t_unit value > 0 } }
 				set_variable = { which = go_t_amt value = go_t_energy }
 				divide_variable = { which = go_t_amt value = go_t_unit }
-				if = { limit = { check_variable = { which = go_t_amt value > @go_opp_max_per_month } } set_variable = { which = go_t_amt value = @go_opp_max_per_month } }
+				if = { limit = { check_variable = { which = go_t_amt value > $MAXMONTH$ } } set_variable = { which = go_t_amt value = $MAXMONTH$ } }
 				if = {
 					limit = { check_variable = { which = go_t_amt value > 0 } }
 					set_variable = { which = go_t_cost value = go_t_amt }
@@ -226,7 +226,7 @@ galactic_overhaul_trade_resource = {
 			}
 			set_variable = { which = go_t_amt value = go_t_stock }
 			subtract_variable = { which = go_t_amt value = @go_opp_sell_floor }
-			if = { limit = { check_variable = { which = go_t_amt value > @go_opp_max_per_month } } set_variable = { which = go_t_amt value = @go_opp_max_per_month } }
+			if = { limit = { check_variable = { which = go_t_amt value > $MAXMONTH$ } } set_variable = { which = go_t_amt value = $MAXMONTH$ } }
 			if = {
 				limit = { check_variable = { which = go_t_amt value > 0 } }
 				set_variable = { which = go_t_gain value = go_t_amt }

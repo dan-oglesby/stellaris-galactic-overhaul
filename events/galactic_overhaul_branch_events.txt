@@ -18,8 +18,8 @@ country_event = {
 	trigger = {
 		is_ai = no                          # player-only sweep (it's a QoL policy; also cheaper)
 		has_policy_flag = go_branch_active
-		authority = { value = auth_corporate }
 		has_megacorp = yes                  # MegaCorp DLC (host_has_dlc "Megacorp")
+		is_megacorp = yes                   # corporate authority (vanilla's own check)
 	}
 
 	immediate = {

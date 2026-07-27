@@ -20,6 +20,9 @@
 @go_trade_sell_keep_frac  = 0.80    # sell the surplus down to this fraction of the cap
 @go_trade_full_frac       = 0.90    # SELL GATE: skip selling if TRADE itself is >= this fraction of its cap (proceeds would waste / nothing to buy)
 @go_trade_energy_floor    = 2000    # never spend trade below this reserve when buying
+@go_trade_share_frac      = 0.40    # max share of the spare trade any ONE resource may spend in a month,
+                                    # so the first resource processed cannot starve the rest
+@go_trade_min_amt         = 1       # ignore trades smaller than this (avoids degenerate 0.00002-unit buys)
 
 # Simulated market spread/fee for the SAFETY desk (forced restock / overflow dumping).
 # You pay up a little for trades you must make now.

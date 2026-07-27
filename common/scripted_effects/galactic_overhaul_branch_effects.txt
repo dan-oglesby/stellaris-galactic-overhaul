@@ -4,6 +4,11 @@
 #                    root = the megacorp. Caller has already confirmed a free
 #                    branch-office building slot and that root can afford a holding.
 #
+# NOTE: presence checks use has_holding = { holding = X owner = root }, NOT has_building.
+# Branch-office buildings are owner_type = corporate and the engine rejects has_building on
+# them outright ("Use has_holding instead", ~20 errors per sweep in the 2026-07-26 playtest),
+# which silently broke every "don't rebuild what's already here" guard in this ladder.
+#
 # add_holding = { holding = X owner = root } is the owner-aware build (add_building
 # would misattribute the holding to the host empire). It BYPASSES the building's own
 # potential/allow checks, so this ladder does the gating itself.
@@ -28,47 +33,47 @@ go_bo_build_best_holding = {
 	# when root has the matching civic - so if the player's government boosts a holding,
 	# build THAT (vanilla applies the capital-trader bonus automatically once it exists).
 	if = {
-		limit = { NOT = { has_building = building_private_mining_consortium } root = { OR = { has_valid_civic = civic_private_prospectors has_valid_civic = civic_privatized_exploration } } }
+		limit = { NOT = { has_holding = { holding = building_private_mining_consortium owner = root } } root = { OR = { has_valid_civic = civic_private_prospectors has_valid_civic = civic_privatized_exploration } } }
 		go_bo_do_build_holding = { HOLDING = building_private_mining_consortium }
 	}
 	else_if = {
-		limit = { NOT = { has_building = building_food_conglomerate } root = { OR = { has_valid_civic = civic_corporate_anglers has_valid_civic = civic_corporate_machine_anglers has_valid_civic = civic_permanent_employment has_valid_civic = civic_corporate_beastmasters has_valid_civic = civic_corporate_deep_sleep } } }
+		limit = { NOT = { has_holding = { holding = building_food_conglomerate owner = root } } root = { OR = { has_valid_civic = civic_corporate_anglers has_valid_civic = civic_corporate_machine_anglers has_valid_civic = civic_permanent_employment has_valid_civic = civic_corporate_beastmasters has_valid_civic = civic_corporate_deep_sleep } } }
 		go_bo_do_build_holding = { HOLDING = building_food_conglomerate }
 	}
 	else_if = {
-		limit = { NOT = { has_building = building_virtual_entertainment_studios } root = { OR = { has_valid_civic = civic_corporate_crafters has_valid_civic = civic_media_conglomerate has_valid_civic = civic_tankbound_corporate } } }
+		limit = { NOT = { has_holding = { holding = building_virtual_entertainment_studios owner = root } } root = { OR = { has_valid_civic = civic_corporate_crafters has_valid_civic = civic_media_conglomerate has_valid_civic = civic_tankbound_corporate } } }
 		go_bo_do_build_holding = { HOLDING = building_virtual_entertainment_studios }
 	}
 	else_if = {
-		limit = { NOT = { has_building = building_private_shipyards } root = { OR = { has_valid_civic = civic_naval_contractors has_valid_civic = civic_corporate_catalytic_processing has_valid_civic = civic_corporate_flight_schools } } }
+		limit = { NOT = { has_holding = { holding = building_private_shipyards owner = root } } root = { OR = { has_valid_civic = civic_naval_contractors has_valid_civic = civic_corporate_catalytic_processing has_valid_civic = civic_corporate_flight_schools } } }
 		go_bo_do_build_holding = { HOLDING = building_private_shipyards }
 	}
 	else_if = {
-		limit = { NOT = { has_building = building_military_contractors } root = { OR = { has_valid_civic = civic_private_military_companies has_valid_civic = civic_corporate_hired_guns has_valid_civic = civic_crusader_spirit_corporate } } }
+		limit = { NOT = { has_holding = { holding = building_military_contractors owner = root } } root = { OR = { has_valid_civic = civic_private_military_companies has_valid_civic = civic_corporate_hired_guns has_valid_civic = civic_crusader_spirit_corporate } } }
 		go_bo_do_build_holding = { HOLDING = building_military_contractors }
 	}
 	else_if = {
-		limit = { NOT = { has_building = building_industrial_subsidiary } root = { OR = { has_valid_civic = civic_corporate_relentless_industrialists has_valid_civic = civic_corporate_scavengers } } }
+		limit = { NOT = { has_holding = { holding = building_industrial_subsidiary owner = root } } root = { OR = { has_valid_civic = civic_corporate_relentless_industrialists has_valid_civic = civic_corporate_scavengers } } }
 		go_bo_do_build_holding = { HOLDING = building_industrial_subsidiary }
 	}
 	else_if = {
-		limit = { NOT = { has_building = building_public_relations_office } root = { OR = { has_valid_civic = civic_public_relations_specialists has_valid_civic = civic_corporate_ascensionists has_valid_civic = civic_corporate_galactic_curators } } }
+		limit = { NOT = { has_holding = { holding = building_public_relations_office owner = root } } root = { OR = { has_valid_civic = civic_public_relations_specialists has_valid_civic = civic_corporate_ascensionists has_valid_civic = civic_corporate_galactic_curators } } }
 		go_bo_do_build_holding = { HOLDING = building_public_relations_office }
 	}
 	else_if = {
-		limit = { NOT = { has_building = building_private_research_initiative } root = { OR = { has_valid_civic = civic_corporate_crowdsourcing has_valid_civic = civic_astrometeorology_megacorp has_valid_civic = civic_corporate_dark_consortium } } }
+		limit = { NOT = { has_holding = { holding = building_private_research_initiative owner = root } } root = { OR = { has_valid_civic = civic_corporate_crowdsourcing has_valid_civic = civic_astrometeorology_megacorp has_valid_civic = civic_corporate_dark_consortium } } }
 		go_bo_do_build_holding = { HOLDING = building_private_research_initiative }
 	}
 	else_if = {
-		limit = { NOT = { has_building = building_amusement_megaplex } root = { OR = { has_valid_civic = civic_corporate_hedonism has_valid_civic = civic_corporate_hyperspace_specialty has_valid_civic = civic_storm_callers_megacorp } } }
+		limit = { NOT = { has_holding = { holding = building_amusement_megaplex owner = root } } root = { OR = { has_valid_civic = civic_corporate_hedonism has_valid_civic = civic_corporate_hyperspace_specialty has_valid_civic = civic_storm_callers_megacorp } } }
 		go_bo_do_build_holding = { HOLDING = building_amusement_megaplex }
 	}
 	else_if = {
-		limit = { NOT = { has_building = building_commercial_forum } root = { OR = { has_valid_civic = civic_trading_posts has_valid_civic = civic_franchising has_valid_civic = civic_caravan_masters_corporate has_valid_civic = civic_memory_vault_corporate } } }
+		limit = { NOT = { has_holding = { holding = building_commercial_forum owner = root } } root = { OR = { has_valid_civic = civic_trading_posts has_valid_civic = civic_franchising has_valid_civic = civic_caravan_masters_corporate has_valid_civic = civic_memory_vault_corporate } } }
 		go_bo_do_build_holding = { HOLDING = building_commercial_forum }
 	}
 	else_if = {
-		limit = { NOT = { has_building = building_private_security } root = { has_valid_civic = civic_dystopian_society } }
+		limit = { NOT = { has_holding = { holding = building_private_security owner = root } } root = { has_valid_civic = civic_dystopian_society } }
 		go_bo_do_build_holding = { HOLDING = building_private_security }
 	}
 
@@ -77,38 +82,38 @@ go_bo_build_best_holding = {
 	# guards mirror the building defs so we don't place a resource holding where its
 	# jobs can't work.
 	else_if = {
-		limit = { NOT = { has_building = building_virtual_entertainment_studios } root = { has_monthly_income = { resource = consumer_goods value < 0 } } }
+		limit = { NOT = { has_holding = { holding = building_virtual_entertainment_studios owner = root } } root = { has_monthly_income = { resource = consumer_goods value < 0 } } }
 		go_bo_do_build_holding = { HOLDING = building_virtual_entertainment_studios }
 	}
 	else_if = {
-		limit = { NOT = { has_building = building_private_shipyards } root = { has_monthly_income = { resource = alloys value < 0 } } }
+		limit = { NOT = { has_holding = { holding = building_private_shipyards owner = root } } root = { has_monthly_income = { resource = alloys value < 0 } } }
 		go_bo_do_build_holding = { HOLDING = building_private_shipyards }
 	}
 	else_if = {
-		limit = { NOT = { has_building = building_amusement_megaplex } root = { has_monthly_income = { resource = energy value < 0 } } }
+		limit = { NOT = { has_holding = { holding = building_amusement_megaplex owner = root } } root = { has_monthly_income = { resource = energy value < 0 } } }
 		go_bo_do_build_holding = { HOLDING = building_amusement_megaplex }
 	}
 	else_if = {
-		limit = { NOT = { has_building = building_private_mining_consortium } NOT = { is_planet_class = pc_city } root = { has_monthly_income = { resource = minerals value < 0 } } }
+		limit = { NOT = { has_holding = { holding = building_private_mining_consortium owner = root } } NOT = { is_planet_class = pc_city } root = { has_monthly_income = { resource = minerals value < 0 } } }
 		go_bo_do_build_holding = { HOLDING = building_private_mining_consortium }
 	}
 	else_if = {
-		limit = { NOT = { has_building = building_food_conglomerate } NOT = { is_planet_class = pc_relic } root = { has_monthly_income = { resource = food value < 0 } } }
+		limit = { NOT = { has_holding = { holding = building_food_conglomerate owner = root } } NOT = { is_planet_class = pc_relic } root = { has_monthly_income = { resource = food value < 0 } } }
 		go_bo_do_build_holding = { HOLDING = building_food_conglomerate }
 	}
 
 	# ===================== PRIORITY 3: default (fill the slot with trade/value) =====================
 	else_if = {
-		limit = { NOT = { has_building = building_commercial_forum } }
+		limit = { NOT = { has_holding = { holding = building_commercial_forum owner = root } } }
 		go_bo_do_build_holding = { HOLDING = building_commercial_forum }
 	}
 	else_if = {
-		limit = { NOT = { has_building = building_private_research_initiative } }
+		limit = { NOT = { has_holding = { holding = building_private_research_initiative owner = root } } }
 		go_bo_do_build_holding = { HOLDING = building_private_research_initiative }
 	}
 	else = {
 		if = {
-			limit = { NOT = { has_building = building_public_relations_office } }
+			limit = { NOT = { has_holding = { holding = building_public_relations_office owner = root } } }
 			go_bo_do_build_holding = { HOLDING = building_public_relations_office }
 		}
 	}

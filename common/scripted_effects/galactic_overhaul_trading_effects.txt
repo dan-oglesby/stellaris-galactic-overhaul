@@ -28,13 +28,17 @@ choose_galactic_market_host = {
 	# Authority civic at game start). Vanilla only sets market_nomination_eligible during
 	# a Community nomination, so pass 1 matches nobody then and the market would be
 	# "founded" with no host at all. Only runs if pass 1 found none, so it never changes
-	# the vanilla outcome.
+	# the vanilla outcome. NOTE: this pass must NOT use is_market_nominee_planet either -
+	# that trigger requires market_nominee_level_* modifiers which vanilla only applies
+	# during a nomination, so an earlier version of this fallback still matched nobody and
+	# the 2026-07-26 playtest logged "market founding deferred" 88 times in a row. Uses the
+	# capital as the host planet instead.
 	if = {
 		limit = { NOT = { exists = event_target:market_founder } }
 		ordered_country = {
 			limit = {
 				is_country_type = default
-				any_owned_planet = { is_market_nominee_planet = yes }
+				any_owned_planet = { is_capital = yes }
 			}
 			order_by = value:go_economy_score
 			position = 0
@@ -44,7 +48,7 @@ choose_galactic_market_host = {
 				log = "GALACTIC_OVERHAUL: galactic market host chosen via fallback (no nomination in progress)"
 			}
 			random_owned_planet = {
-				limit = { is_market_nominee_planet = yes }
+				limit = { is_capital = yes }
 				save_global_event_target_as = market_founder_planet
 			}
 		}
@@ -160,7 +164,7 @@ galactic_overhaul_trade_resource = {
 			set_variable = { which = go_t_amt value = $MAXMONTH$ }
 		}
 		if = {
-			limit = { check_variable = { which = go_t_amt value > 0 } }
+			limit = { check_variable = { which = go_t_amt value >= @go_trade_min_amt } }
 			set_variable = { which = go_t_gain value = go_t_amt }
 			multiply_variable = { which = go_t_gain value = go_t_eff }
 			multiply_variable = { which = go_t_gain value = @go_trade_sell_feemult }
@@ -199,6 +203,11 @@ galactic_overhaul_trade_resource = {
 				check_variable = { which = go_t_unit value > 0 }
 			}
 			# cap the buy by what the spare trade can actually afford
+			# Fair share: cap this resource's spend at a fraction of the spare trade, so the
+			# FIRST resource processed can't consume the entire budget. In the 2026-07-26
+			# playtest energy (processed first) took the spare trade and alloys sat at 195
+			# of a 35000 cap with act=0 all game, despite being far below its restock target.
+			multiply_variable = { which = go_t_energy value = @go_trade_share_frac }
 			set_variable = { which = go_t_afford value = go_t_energy }
 			divide_variable = { which = go_t_afford value = go_t_unit }
 			if = {
@@ -206,7 +215,7 @@ galactic_overhaul_trade_resource = {
 				set_variable = { which = go_t_amt value = go_t_afford }
 			}
 			if = {
-				limit = { check_variable = { which = go_t_amt value > 0 } }
+				limit = { check_variable = { which = go_t_amt value >= @go_trade_min_amt } }
 				set_variable = { which = go_t_cost value = go_t_amt }
 				multiply_variable = { which = go_t_cost value = go_t_unit }
 				add_resource = { $RESOURCE$ = 1 mult = go_t_amt }
@@ -252,7 +261,7 @@ galactic_overhaul_trade_resource = {
 				subtract_variable = { which = go_t_head value = go_t_stock }
 				if = { limit = { check_variable = { which = go_t_amt value > go_t_head } } set_variable = { which = go_t_amt value = go_t_head } }
 				if = {
-					limit = { check_variable = { which = go_t_amt value > 0 } }
+					limit = { check_variable = { which = go_t_amt value >= @go_trade_min_amt } }
 					set_variable = { which = go_t_cost value = go_t_amt }
 					multiply_variable = { which = go_t_cost value = go_t_unit }
 					add_resource = { $RESOURCE$ = 1 mult = go_t_amt }
@@ -276,7 +285,7 @@ galactic_overhaul_trade_resource = {
 			subtract_variable = { which = go_t_amt value = go_t_oppfloor }
 			if = { limit = { check_variable = { which = go_t_amt value > $MAXMONTH$ } } set_variable = { which = go_t_amt value = $MAXMONTH$ } }
 			if = {
-				limit = { check_variable = { which = go_t_amt value > 0 } }
+				limit = { check_variable = { which = go_t_amt value >= @go_trade_min_amt } }
 				set_variable = { which = go_t_gain value = go_t_amt }
 				multiply_variable = { which = go_t_gain value = go_t_eff }
 				multiply_variable = { which = go_t_gain value = @go_opp_sell_feemult }

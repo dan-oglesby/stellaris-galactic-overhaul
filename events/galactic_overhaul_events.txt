@@ -276,12 +276,35 @@ country_event = {
 	immediate = {
 		export_resource_stockpile_to_variable = { resource = trade variable = go_bk_trade }
 		export_resource_maximum_to_variable   = { resource = trade variable = go_bk_max }
-		set_variable = { which = go_bk_high value = go_bk_max }
+
+		# Work from the BASE trade cap, i.e. strip out the storage bonus this very policy
+		# grants. Otherwise the deposit trigger scales with the tier (+25k/+50k/+100k) and
+		# becomes unreachable - and picking a HIGHER-interest tier would make depositing
+		# harder, which is backwards.
+		set_variable = { which = go_bk_base value = go_bk_max }
+		if = {
+			limit = { has_policy_flag = galactic_overhaul_tier_conservative }
+			subtract_variable = { which = go_bk_base value = @go_bank_cap_bonus_cons }
+		}
+		else_if = {
+			limit = { has_policy_flag = galactic_overhaul_tier_aggressive }
+			subtract_variable = { which = go_bk_base value = @go_bank_cap_bonus_agg }
+		}
+		else = {
+			subtract_variable = { which = go_bk_base value = @go_bank_cap_bonus_std }
+		}
+		# never let the base collapse to zero/negative if a modifier changes underneath us
+		if = {
+			limit = { check_variable = { which = go_bk_base value < 10000 } }
+			set_variable = { which = go_bk_base value = 10000 }
+		}
+
+		set_variable = { which = go_bk_high value = go_bk_base }
 		multiply_variable = { which = go_bk_high value = @go_bank_deposit_frac }
 
 		if = {
 			limit = { check_variable = { which = go_bk_trade value >= go_bk_high } }
-			set_variable = { which = go_bk_keep value = go_bk_max }
+			set_variable = { which = go_bk_keep value = go_bk_base }
 			multiply_variable = { which = go_bk_keep value = @go_bank_target_frac }
 			set_variable = { which = go_bk_amt value = go_bk_trade }
 			subtract_variable = { which = go_bk_amt value = go_bk_keep }
@@ -311,6 +334,7 @@ country_event = {
 
 		clear_variable = go_bk_trade
 		clear_variable = go_bk_max
+		clear_variable = go_bk_base
 		clear_variable = go_bk_high
 		clear_variable = go_bk_keep
 		clear_variable = go_bk_amt

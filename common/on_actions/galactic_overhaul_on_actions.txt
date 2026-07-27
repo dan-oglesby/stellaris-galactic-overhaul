@@ -3,11 +3,18 @@
 # so these APPEND our events rather than replacing the vanilla lists.
 
 # Monthly: pay interest on stored energy (galactic_overhaul.1) + run Treasury Automation (galactic_overhaul.2).
+# ORDER MATTERS - whoever runs first claims the trade:
+#   .1 interest -> .3 tax (ADDS trade) -> .2 trade desk (SPENDS trade) -> .4 bank sweep.
+# Tax runs before the desk so the desk can spend THIS month's revenue rather than last
+# month's, and so it no longer lands between the desk and the sweep (where it pushed trade
+# back above the refill threshold and stopped the Reserve refill from ever firing).
+# Tax revenue is computed from trade INCOME, not the stockpile, so the amount is unchanged
+# by this reordering.
 on_monthly_pulse_country = {
 	events = {
 		galactic_overhaul.1
-		galactic_overhaul.2
 		galactic_overhaul.3
+		galactic_overhaul.2
 		galactic_overhaul.4
 	}
 }

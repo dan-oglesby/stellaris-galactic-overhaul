@@ -1,8 +1,26 @@
 # Galactic Bank - deposit/withdraw automation bands (operates on the TRADE stockpile).
 # When Galactic Banking is active, the bank auto-manages your trade:
-#   - deposits the surplus into Banked Credits when trade nears its cap, and
+#   - deposits the surplus into Banked Credits when trade nears its BASE cap, and
 #   - withdraws from Banked Credits to refill trade when it runs low.
-@go_bank_deposit_frac   = 0.9    # deposit when trade stockpile >= cap * this
-@go_bank_target_frac    = 0.6    # ...depositing the excess down to cap * this
-@go_bank_withdraw_floor = 2000   # withdraw when trade stockpile <= this
-@go_bank_refill_target  = 5000   # ...withdrawing from the bank to bring trade up to this
+#
+# WHY "BASE" CAP: each banking tier ADDS trade storage (+25k/+50k/+100k on top of
+# vanilla's 50k). Scaling the deposit trigger off the inflated cap meant the trigger sat
+# at 67,500 / 90,000 / 135,000 liquid trade - effectively unreachable - so the sweep only
+# ever WITHDREW and the Reserve was a one-way drain. Worse, it was inverted: picking the
+# highest-interest tier made deposits HARDER. galactic_overhaul.4 now subtracts the tier's
+# own bonus before applying the fraction, so "deposit when flush" means the same thing at
+# every tier.
+@go_bank_deposit_frac   = 0.9    # deposit when trade stockpile >= BASE cap * this
+@go_bank_target_frac    = 0.6    # ...depositing the excess down to BASE cap * this
+
+# The tier cap bonuses to subtract (keep in sync with common/policies/galactic_overhaul_policies.txt).
+@go_bank_cap_bonus_cons = 25000
+@go_bank_cap_bonus_std  = 50000
+@go_bank_cap_bonus_agg  = 100000
+
+# Refill band. NOTE: the withdraw floor MUST sit above the trade desk's own spending floor
+# (@go_trade_energy_floor, 2000) - they were both 2000, and because the tax event adds trade
+# between the desk and this sweep, the "trade <= 2000" test could never pass and the refill
+# NEVER fired. Kept clear of it at 5000.
+@go_bank_withdraw_floor = 5000   # withdraw when trade stockpile <= this
+@go_bank_refill_target  = 10000  # ...withdrawing from the bank to bring trade up to this

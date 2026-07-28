@@ -45,9 +45,20 @@ through real diplomacy. From the vanilla schema in `00_tradable_actions.txt`:
 | `on_deal_ended_sender_effect` / `_recipient_effect` | fire on termination, on each side |
 | `ai_weight` | **how much the AI values it** when deciding |
 
-Vanilla's own example grants `set_galactic_custodian`. So a custom "Trade Concordat" can be
+Vanilla's own example grants `set_galactic_custodian`, and 8 real treaties ship
+(`trade_action_pledge_loyalty`, `share_empire_data`, `bulwark_prefabs`, …), so this is a
+working system rather than a documented intention. A custom "Trade Concordat" can be
 offered, genuinely accepted or refused by the AI, persist a decade, and run arbitrary
 effects on both empires — without touching a vanilla file.
+
+⚠️ **Scope of the bypass — do not overstate it.** This does *not* let you create, send or
+accept a vanilla **embassy** or any vanilla pact: `effects.log` contains **zero** embassy
+entries, so `has_embassy` stays false and the diplomacy screen shows nothing. It also does
+**not** automate anything — there is **no effect that proposes or initiates a trade deal**
+(the only proposal effects in the API are for Galactic Community resolutions:
+`propose_resolution` / `pass_resolution`). The player still opens every deal by hand, one
+empire at a time. What you get is a *parallel, custom* agreement with real AI acceptance —
+useful, but a lookalike, not the vanilla relationship.
 
 ### 1.2 `common/scripted_actions/` — real custom fleet orders ✅
 **Bypasses:** "construction ships cannot be given a real build order" (the reason Smart
@@ -236,7 +247,8 @@ Evidence-backed. Each is "zero hits across effects/triggers/scopes logs" unless 
 | Limit | Workaround |
 |---|---|
 | No effect assigns an **envoy** to a task | None. Do the envoy's job directly (e.g. `finish_first_contact_effect`) |
-| No effect creates/sends/accepts an **embassy** or the 5 mutual-consent pacts | `tradable_actions` custom treaties (§1.1); `add_trust` / `add_opinion_modifier` to raise AI acceptance |
+| No effect creates/sends/accepts an **embassy** or the 5 mutual-consent pacts | Nothing restores the vanilla relationship. `tradable_actions` (§1.1) gives a *custom lookalike* treaty; `add_trust` / `add_opinion_modifier` raise AI acceptance of a manually-sent proposal |
+| No effect **proposes or initiates a diplomatic offer / trade deal** (only `propose_resolution` for GalCom) — so no diplomacy can ever be automated | None. Reduce refusals with `add_trust` / `add_opinion_modifier`; the click stays manual |
 | No **real market order** | Simulate via `add_resource` at `market_resource_price`, or `resource_converters` (§1.3) |
 | **Planet automation** cannot be toggled | `should_colony_automate` game rule (§1.4) |
 | No **sector focus** effect | Dead end — vanilla focus bodies are empty in 4.4 |

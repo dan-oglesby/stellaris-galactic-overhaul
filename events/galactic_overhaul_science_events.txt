@@ -28,8 +28,15 @@ country_event = {
 				NOT = { exists = leader }
 				is_disabled = no
 			}
+			# QoL, not a cheat: create_leader charges NOTHING, so we deduct the real vanilla
+			# recruitment price ourselves and refuse to recruit when you couldn't have
+			# afforded it by hand. Leaders are paid in UNITY
+			# (common/leader_classes/00_base_classes.txt: `unity = 1 mult = value:leader_cost`).
 			if = {
-				limit = { owner = { num_owned_leaders < @go_sci_leader_cap } }
+				limit = {
+					owner = { num_owned_leaders < @go_sci_leader_cap }
+					owner = { resource_stockpile_compare = { resource = unity value >= @go_sci_leader_unity } }
+				}
 				owner = {
 					create_leader = {
 						class = scientist
@@ -37,17 +44,25 @@ country_event = {
 						skill = @go_sci_skill
 						name = random
 					}
+					add_resource = { unity = @go_sci_leader_unity_neg }
 				}
 				assign_leader = last_created_leader
 				if = {
 					limit = { go_debug_on = yes }
-					log = "GALACTIC_OVERHAUL_SCIENCE: crewed science ship [This.GetName] with a new scientist"
+					log = "GALACTIC_OVERHAUL_SCIENCE: crewed science ship [This.GetName] with a new scientist (paid unity)"
+				}
+			}
+			else_if = {
+				limit = { owner = { NOT = { num_owned_leaders < @go_sci_leader_cap } } }
+				if = {
+					limit = { go_debug_on = yes }
+					log = "GALACTIC_OVERHAUL_SCIENCE: [This.GetName] needs a scientist but owner is at the leader ceiling"
 				}
 			}
 			else = {
 				if = {
 					limit = { go_debug_on = yes }
-					log = "GALACTIC_OVERHAUL_SCIENCE: [This.GetName] needs a scientist but owner is at the leader ceiling"
+					log = "GALACTIC_OVERHAUL_SCIENCE: [This.GetName] needs a scientist but owner cannot afford the unity cost"
 				}
 			}
 		}

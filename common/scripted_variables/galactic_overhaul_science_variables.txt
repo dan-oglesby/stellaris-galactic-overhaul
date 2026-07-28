@@ -4,3 +4,12 @@
 # reassigning an existing idle one. The ceiling below is a runaway guard.
 @go_sci_leader_cap = 20   # don't auto-recruit if the country already has >= this many leaders
 @go_sci_skill      = 2    # starting skill of an auto-recruited scientist
+
+# Real vanilla recruitment price, charged manually because create_leader is free.
+# Leaders cost UNITY: common/leader_classes/00_base_classes.txt uses
+#   resources = { cost = { unity = 1 mult = value:leader_cost } }
+# and common/script_values/00_script_values.txt:528 defines
+#   leader_cost = 50*(level-1)^2 + 25*(level-1) + 100
+# For @go_sci_skill = 2 that is 50 + 25 + 100 = 175. Keep in sync if the skill changes.
+@go_sci_leader_unity     = 175
+@go_sci_leader_unity_neg = -175

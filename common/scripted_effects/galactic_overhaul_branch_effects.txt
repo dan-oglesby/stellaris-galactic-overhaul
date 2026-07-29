@@ -26,8 +26,32 @@ go_bo_do_build_holding = {
 	}
 }
 
-# Pick and build the single most beneficial holding for root on this host colony.
+# ---------------------------------------------------------------------------
+# DISPATCHER: criminal syndicates cannot use the legit building set at all.
+# Every building in the legit ladder has potential = { branch_office_owner = {
+# is_legit_or_legal_criminal = yes } }, which is FALSE for a crime corp operating
+# illegally - and add_holding BYPASSES potential, so before this fix the automation
+# happily created legit holdings on a criminal branch office that could never
+# function. (2026-07-28 playtest: 58 holdings "built", all invalid -> "no buildings".)
+#
+# KNOWN LIMITATION: this branches on is_criminal_syndicate, not on whether the office
+# has been LEGALISED on that particular planet. A legalised crime corp uses the legit
+# set in vanilla; here it would still get criminal holdings. Vanilla's own
+# is_legit_or_legal_criminal trigger cannot be called from this effect because it
+# references root.owner, and our root is the megacorp rather than the planet.
+# ---------------------------------------------------------------------------
 go_bo_build_best_holding = {
+	if = {
+		limit = { root = { is_criminal_syndicate = yes } }
+		go_bo_build_best_holding_criminal = yes
+	}
+	else = {
+		go_bo_build_best_holding_legit = yes
+	}
+}
+
+# Legit megacorps: the 14 buildings gated on is_legit_or_legal_criminal.
+go_bo_build_best_holding_legit = {
 	# ===================== PRIORITY 1: civic-boosted holdings =====================
 	# Each of these holdings grants root +200 capital TRADER jobs (@traders_from_civic)
 	# when root has the matching civic - so if the player's government boosts a holding,
@@ -115,6 +139,102 @@ go_bo_build_best_holding = {
 		if = {
 			limit = { NOT = { has_holding = { holding = building_public_relations_office owner = root } } }
 			go_bo_do_build_holding = { HOLDING = building_public_relations_office }
+		}
+	}
+}
+
+# ---------------------------------------------------------------------------
+# Criminal syndicates: the 11 buildings gated on is_illegal_criminal = yes.
+# They mirror the legit set role-for-role AND respond to the SAME civics, so the
+# priority order matches the legit ladder exactly:
+#   wildcat_miners~mining_consortium    bio_reprocessing~food_conglomerate
+#   underground_chemists~entertainment  wrecking_yards~shipyards
+#   pirate_haven~military_contractors   underground_clubs~amusement_megaplex
+#   syndicate_outreach~public_relations illicit_research_labs~research_initiative
+#   smuggling_rings~commercial_forum    disinformation_center~corporate_embassy
+# ---------------------------------------------------------------------------
+go_bo_build_best_holding_criminal = {
+	# ---------- PRIORITY 1: civic-boosted ----------
+	if = {
+		limit = { NOT = { has_holding = { holding = building_wildcat_miners owner = root } } root = { OR = { has_valid_civic = civic_private_prospectors has_valid_civic = civic_privatized_exploration } } }
+		go_bo_do_build_holding = { HOLDING = building_wildcat_miners }
+	}
+	else_if = {
+		limit = { NOT = { has_holding = { holding = building_bio_reprocessing_facilities owner = root } } root = { OR = { has_valid_civic = civic_permanent_employment has_valid_civic = civic_corporate_deep_sleep } } }
+		go_bo_do_build_holding = { HOLDING = building_bio_reprocessing_facilities }
+	}
+	else_if = {
+		limit = { NOT = { has_holding = { holding = building_underground_chemists owner = root } } root = { OR = { has_valid_civic = civic_corporate_crafters has_valid_civic = civic_media_conglomerate has_valid_civic = civic_tankbound_corporate } } }
+		go_bo_do_build_holding = { HOLDING = building_underground_chemists }
+	}
+	else_if = {
+		limit = { NOT = { has_holding = { holding = building_wrecking_yards owner = root } } root = { OR = { has_valid_civic = civic_naval_contractors has_valid_civic = civic_corporate_catalytic_processing has_valid_civic = civic_caravan_masters_corporate } } }
+		go_bo_do_build_holding = { HOLDING = building_wrecking_yards }
+	}
+	else_if = {
+		limit = { NOT = { has_holding = { holding = building_pirate_haven owner = root } } root = { OR = { has_valid_civic = civic_private_military_companies has_valid_civic = civic_corporate_hired_guns has_valid_civic = civic_crusader_spirit_corporate } } }
+		go_bo_do_build_holding = { HOLDING = building_pirate_haven }
+	}
+	else_if = {
+		limit = { NOT = { has_holding = { holding = building_underground_clubs owner = root } } root = { OR = { has_valid_civic = civic_corporate_hedonism has_valid_civic = civic_corporate_hyperspace_specialty } } }
+		go_bo_do_build_holding = { HOLDING = building_underground_clubs }
+	}
+	else_if = {
+		limit = { NOT = { has_holding = { holding = building_syndicate_outreach_office owner = root } } root = { OR = { has_valid_civic = civic_public_relations_specialists has_valid_civic = civic_corporate_ascensionists } } }
+		go_bo_do_build_holding = { HOLDING = building_syndicate_outreach_office }
+	}
+	else_if = {
+		limit = { NOT = { has_holding = { holding = building_illicit_research_labs owner = root } } root = { OR = { has_valid_civic = civic_corporate_dark_consortium has_valid_civic = civic_memory_vault_corporate } } }
+		go_bo_do_build_holding = { HOLDING = building_illicit_research_labs }
+	}
+	else_if = {
+		limit = { NOT = { has_holding = { holding = building_smuggling_rings owner = root } } root = { OR = { has_valid_civic = civic_trading_posts has_valid_civic = civic_franchising has_valid_civic = civic_caravan_masters_corporate } } }
+		go_bo_do_build_holding = { HOLDING = building_smuggling_rings }
+	}
+	else_if = {
+		limit = { NOT = { has_holding = { holding = building_disinformation_center owner = root } } root = { OR = { has_valid_civic = civic_brand_loyalty has_valid_civic = civic_secret_societies_corporate has_valid_civic = civic_corporate_guided_sapience } } }
+		go_bo_do_build_holding = { HOLDING = building_disinformation_center }
+	}
+	else_if = {
+		limit = { NOT = { has_holding = { holding = building_subversive_shrine owner = root } } root = { has_valid_civic = civic_gospel_of_the_masses } }
+		go_bo_do_build_holding = { HOLDING = building_subversive_shrine }
+	}
+
+	# ---------- PRIORITY 2: deficit-first ----------
+	else_if = {
+		limit = { NOT = { has_holding = { holding = building_underground_chemists owner = root } } root = { has_monthly_income = { resource = consumer_goods value < 0 } } }
+		go_bo_do_build_holding = { HOLDING = building_underground_chemists }
+	}
+	else_if = {
+		limit = { NOT = { has_holding = { holding = building_wrecking_yards owner = root } } root = { has_monthly_income = { resource = alloys value < 0 } } }
+		go_bo_do_build_holding = { HOLDING = building_wrecking_yards }
+	}
+	else_if = {
+		limit = { NOT = { has_holding = { holding = building_underground_clubs owner = root } } root = { has_monthly_income = { resource = energy value < 0 } } }
+		go_bo_do_build_holding = { HOLDING = building_underground_clubs }
+	}
+	else_if = {
+		limit = { NOT = { has_holding = { holding = building_wildcat_miners owner = root } } NOT = { is_planet_class = pc_city } root = { has_monthly_income = { resource = minerals value < 0 } } }
+		go_bo_do_build_holding = { HOLDING = building_wildcat_miners }
+	}
+	else_if = {
+		limit = { NOT = { has_holding = { holding = building_bio_reprocessing_facilities owner = root } } NOT = { is_planet_class = pc_relic } root = { has_monthly_income = { resource = food value < 0 } } }
+		go_bo_do_build_holding = { HOLDING = building_bio_reprocessing_facilities }
+	}
+
+	# ---------- PRIORITY 3: defaults ----------
+	else_if = {
+		limit = { NOT = { has_holding = { holding = building_smuggling_rings owner = root } } }
+		go_bo_do_build_holding = { HOLDING = building_smuggling_rings }
+	}
+	else_if = {
+		limit = { NOT = { has_holding = { holding = building_illicit_research_labs owner = root } } }
+		go_bo_do_build_holding = { HOLDING = building_illicit_research_labs }
+	}
+	else = {
+		if = {
+			limit = { NOT = { has_holding = { holding = building_syndicate_outreach_office owner = root } } }
+			go_bo_do_build_holding = { HOLDING = building_syndicate_outreach_office }
 		}
 	}
 }

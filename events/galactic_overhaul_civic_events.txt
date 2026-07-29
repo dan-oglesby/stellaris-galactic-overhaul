@@ -1,108 +1,16 @@
 namespace = galactic_overhaul_civic
 
 # ============================================================================
-# Megacorp founding civics. A corporate empire holding civic_go_banking_charter
-# or civic_go_market_authority instantly founds that institution galaxy-wide;
-# every empire is notified by a popup and gains access. Fired from BOTH
-# on_game_start_country and on_monthly_pulse_country (so reform-adoption works);
-# the founded flags make it idempotent. Debug tag: GALACTIC_OVERHAUL.
+# The megacorp founding civics (civic_go_banking_charter / civic_go_market_authority)
+# were REMOVED in v0.26.0. They instantly founded a galaxy-wide institution for every
+# empire from turn one, which is a sweeping galaxy change rather than automation - and
+# an AI rolling one silently founded the Galactic Market in someone else's game.
+# The Galactic Bank is now chartered solely through the Galactic Community resolution,
+# and the Galactic Market through vanilla's own process.
+# Events .1 (founding), .2 and .3 (the galaxy-wide popups) went with them.
+#
+# What remains is the independent "no AI megacorps" rule. Debug tag: GALACTIC_OVERHAUL.
 # ============================================================================
-
-# .1 - found the institution(s) this empire's civic(s) entitle.
-country_event = {
-	id = galactic_overhaul_civic.1
-	hide_window = yes
-	is_triggered_only = yes
-
-	# PERF: also require the matching institution to be UNfounded, so once both exist this
-	# event stops firing entirely instead of re-entering `immediate` every month forever.
-	trigger = {
-		# Belt and braces alongside ai_weight = 0: never let an AI empire's civic found a
-		# galaxy-wide institution on everyone's behalf.
-		is_ai = no
-		OR = {
-			AND = {
-				has_civic = civic_go_banking_charter
-				NOT = { has_global_flag = galactic_overhaul_chartered }
-			}
-			AND = {
-				has_civic = civic_go_market_authority
-				NOT = { has_global_flag = galactic_market_founded }
-			}
-		}
-	}
-
-	immediate = {
-		# --- Banking Charter -> found the Galactic Bank for everyone ---
-		if = {
-			limit = {
-				has_civic = civic_go_banking_charter
-				NOT = { has_global_flag = galactic_overhaul_chartered }
-			}
-			set_global_flag = galactic_overhaul_chartered
-			galactic_overhaul_select_host = yes
-			if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL: [This.GetName] megacorp charter FOUNDED the Galactic Bank galaxy-wide" }
-			every_country = {
-				limit = { is_country_type = default }
-				country_event = { id = galactic_overhaul_civic.2 }
-			}
-		}
-		# --- Market Authority -> found the Galactic Market for everyone ---
-		if = {
-			limit = {
-				has_civic = civic_go_market_authority
-				NOT = { has_global_flag = galactic_market_founded }
-			}
-			# Pick a host FIRST, and only latch "founded" if one was actually selected.
-			# The host override filters on market_nomination_eligible, which vanilla sets
-			# only during a Community market nomination - so at game start nobody has it
-			# and no host is chosen. Latching the flag unconditionally (as this did) left
-			# a permanently host-less market that could never be founded again, because
-			# the guard above blocks every retry. Now an unsuccessful attempt simply
-			# leaves the flag unset and retries next month.
-			choose_galactic_market_host = yes
-			if = {
-				limit = { exists = event_target:market_founder }
-				set_global_flag = galactic_market_founded
-				enable_galactic_market = yes
-				if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL: [This.GetName] megacorp authority FOUNDED the Galactic Market galaxy-wide" }
-				every_country = {
-					limit = { is_country_type = default }
-					country_event = { id = galactic_overhaul_civic.3 }
-				}
-			}
-			else = {
-				if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL: market founding deferred - no eligible host yet (will retry)" }
-			}
-		}
-	}
-}
-
-# .2 - Galactic Bank founded popup (sent to every empire).
-country_event = {
-	id = galactic_overhaul_civic.2
-	title = "galactic_overhaul_civic.2.name"
-	desc = "galactic_overhaul_civic.2.desc"
-	picture = GFX_evt_galactic_community
-	is_triggered_only = yes
-
-	option = {
-		name = "galactic_overhaul_civic.2.a"
-	}
-}
-
-# .3 - Galactic Market founded popup (sent to every empire).
-country_event = {
-	id = galactic_overhaul_civic.3
-	title = "galactic_overhaul_civic.3.name"
-	desc = "galactic_overhaul_civic.3.desc"
-	picture = GFX_evt_galactic_community
-	is_triggered_only = yes
-
-	option = {
-		name = "galactic_overhaul_civic.3.a"
-	}
-}
 
 # .4 - "No AI megacorps" rule (unconditional): at game start, convert any AI
 # megacorp into a regular oligarchic empire. The player (is_ai = no) is never

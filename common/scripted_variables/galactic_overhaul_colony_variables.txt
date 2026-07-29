@@ -28,3 +28,9 @@
 @go_col_target_reserve_days = 1800
 # Days after founding before the automation-proxy debug check inspects the colony
 @go_col_proxy_check_days = 200
+
+# Auto-manage proxy check (galactic_overhaul_colony.4): how many times to report, and
+# how many 100-day waits to allow before giving up on a planet that never actually
+# became a colony (prevents an unbounded event chain).
+@go_col_proxy_checks    = 3
+@go_col_proxy_max_waits = 10

@@ -18,10 +18,6 @@
  GO_BANK_WD_5K:0   "Withdraw 5000"
  GO_BANK_WD_ALL:0  "Withdraw All"
 
- GO_BANK_NEED_TRADE:0 "Not enough Trade to deposit that amount."
- GO_BANK_NO_TRADE:0   "You have no Trade to deposit."
- GO_BANK_NEED_BANK:0  "Not enough Banked Credits to withdraw that amount."
- GO_BANK_NO_BANK:0    "Your Reserve balance is empty."
 
  decision_go_open_bank:0 "Open the Galactic Bank"
  decision_go_open_bank_desc:0 "Open the Galactic Bank panel to deposit or withdraw Banked Credits from your Treasury Reserve and review your interest rate and last month's interest."

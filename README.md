@@ -2,7 +2,7 @@
 
 A multi-feature **economic & automation overhaul** for **Stellaris 4.4 "Pegasus"**.
 
-`version 0.25.2` · `supported_version 4.4.*` · tags: Economy, Gameplay
+`version 0.26.0` · `supported_version 4.4.*` · tags: Economy, Gameplay
 
 ## Features
 
@@ -13,7 +13,7 @@ A multi-feature **economic & automation overhaul** for **Stellaris 4.4 "Pegasus"
 - **Auto-Colonization** — automatically builds and dispatches colony ships to colonizable worlds in your borders.
 - **Science Automation** — keeps science ships crewed by recruiting/assigning scientists.
 - **Branch Office Automation** (megacorp) — an empire-wide policy that opens branch offices on qualifying colonies (of empires you have a commercial pact / federation / subject relationship with) and builds the most beneficial holding on each: **prioritizing the holdings your civics supercharge** (which grant extra capital Trader jobs), then your empire's resource shortfalls, then trade. Pays the real influence + mineral costs, rate-limited per month. Requires Corporate authority + the MegaCorp DLC.
-- **Megacorp founding civics** — corporate empires can instantly found the Galactic Bank or Galactic Market galaxy-wide (with a popup for every empire); an option suppresses AI megacorps.
+- **No AI megacorps** (optional rule) — AI corporate empires are converted to oligarchic at game start, so the megacorp niche is yours.
 - Custom resource (Banked Credits), a strongest-economy Galactic Market host override, and always-on debug logging.
 
 ## Deploying (local dev)
@@ -24,7 +24,7 @@ Stellaris loads local mods via a `.mod` file in `Documents\Paradox Interactive\S
 2. Create `Documents\Paradox Interactive\Stellaris\mod\galactic_overhaul.mod`:
    ```
    name="Galactic Overhaul"
-   version="0.25.2"
+   version="0.26.0"
    tags={
        "Economy"
        "Gameplay"

@@ -35,6 +35,9 @@
 # Price impact: accumulated trade pressure shifts the effective price against us.
 @go_trade_impact_coef     = 0.0005
 @go_trade_pressure_decay  = 0.8
+# Hard bounds on accumulated price-impact pressure (it only decays while the desk runs).
+@go_trade_pressure_max    = 5000
+@go_trade_pressure_min    = -5000
 
 # --- Opportunistic desk: buy-low/sell-high vs a per-resource price EMA, + a monthly fee ---
 @go_opp_alpha          = 0.1     # EMA smoothing for the reference price

@@ -288,13 +288,27 @@ planet_event = {
 				}
 			}
 			if = {
-				limit = { check_variable = { which = go_col_check_count value < 3 } }
+				limit = { check_variable = { which = go_col_check_count value < @go_col_proxy_checks } }
 				planet_event = { id = galactic_overhaul_colony.4 days = @go_col_proxy_check_days }
+			}
+			else = {
+				# done reporting - drop the counter so it does not linger in the save
+				clear_variable = go_col_check_count
 			}
 		}
 		else = {
-			# Not colonised yet - check again shortly.
-			planet_event = { id = galactic_overhaul_colony.4 days = 100 }
+			# Not colonised yet. This branch previously rescheduled every 100 days with NO
+			# terminator and without touching the counter, so a planet that never became a
+			# colony (ship lost, target taken, colonisation cancelled) re-fired this event
+			# forever and leaked go_col_check_count. Now it gives up after a bounded wait.
+			if = {
+				limit = { check_variable = { which = go_col_check_count value < @go_col_proxy_max_waits } }
+				planet_event = { id = galactic_overhaul_colony.4 days = 100 }
+			}
+			else = {
+				if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_COLONY: [This.GetName] never became a colony - abandoning auto-manage check" }
+				clear_variable = go_col_check_count
+			}
 		}
 	}
 }

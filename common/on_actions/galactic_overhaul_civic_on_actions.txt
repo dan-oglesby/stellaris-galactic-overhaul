@@ -1,16 +1,7 @@
-# Megacorp founding civics: check at game start AND monthly (so reform-adoption
-# also triggers it). The .1 event's founded-flag guards make it idempotent.
+# Only the "no AI megacorps" rule remains here. The founding civics (and their
+# galactic_overhaul_civic.1 monthly check) were removed in v0.26.0.
 on_game_start_country = {
 	events = {
-		# .4 (convert AI megacorps) runs FIRST: otherwise an AI megacorp holding a
-		# founding civic founds the institution before it is converted away.
 		galactic_overhaul_civic.4
-		galactic_overhaul_civic.1
-	}
-}
-
-on_monthly_pulse_country = {
-	events = {
-		galactic_overhaul_civic.1
 	}
 }

@@ -81,6 +81,18 @@ galactic_overhaul_trade_resource = {
 		set_variable = { which = go_pressure_$RESOURCE$ value = 0 }
 	}
 	multiply_variable = { which = go_pressure_$RESOURCE$ value = @go_trade_pressure_decay }
+	# Pressure only decays while the desk is RUNNING, so toggling Treasury Automation off
+	# freezes it and it skews effective prices when you switch back on. Decay is fast
+	# (x0.8/month) and a per-country monthly event purely to decay it would cost more than
+	# the problem is worth - so we CLAMP instead, bounding the worst case either way.
+	if = {
+		limit = { check_variable = { which = go_pressure_$RESOURCE$ value > @go_trade_pressure_max } }
+		set_variable = { which = go_pressure_$RESOURCE$ value = @go_trade_pressure_max }
+	}
+	if = {
+		limit = { check_variable = { which = go_pressure_$RESOURCE$ value < @go_trade_pressure_min } }
+		set_variable = { which = go_pressure_$RESOURCE$ value = @go_trade_pressure_min }
+	}
 	# action result for the caller's debug log: 0 = no action, 1 = sold, 2 = bought
 	set_variable = { which = go_t_action value = 0 }
 	set_variable = { which = go_t_amt value = 0 }

@@ -87,7 +87,7 @@ country_event = {
 		# ---- 9. Optional debug log (toggle via the debug decision) ----
 		if = {
 			limit = { go_debug_on = yes }
-			log = "GALACTIC_OVERHAUL_BANK [This.GetName]: rate=[This.go_last_rate] interest=[This.go_last_interest] balance=[This.go_reserves]"
+			log = "GALACTIC_OVERHAUL_BANK [This.GetName]: rate=[This.go_last_rate] interest=[This.go_last_interest] balance_before=[This.go_reserves]"
 		}
 
 		# ---- Tidy (keep go_last_rate / go_last_interest for the panel) ----

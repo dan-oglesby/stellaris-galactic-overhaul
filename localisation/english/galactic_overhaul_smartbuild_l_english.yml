@@ -6,5 +6,5 @@
  go_sb_off:0 "Manual Construction"
  go_sb_off_desc:0 "You direct your construction ships yourself. No automation."
  go_sb_on:0 "Smart Build"
- go_sb_on_desc:0 "Construction ships roam and build automatically, in priority order: outposts on adjacent unclaimed systems, then hyper relays, gateways, orbital rings, and habitats wherever eligible and researched. All at normal resource costs."
+ go_sb_on_desc:0 "Construction ships roam and build automatically, in priority order: §Ymining and research stations§! on unserviced deposits (the first thing they look for), then outposts on adjacent unclaimed systems, then hyper relays, gateways, orbital rings and habitats wherever eligible and researched. All at normal resource costs."
  go_smartbuild_active_name:0 "Smart Build"

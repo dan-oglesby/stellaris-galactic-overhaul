@@ -24,6 +24,11 @@ country_event = {
 	# Both checks below are O(1) flag lookups: run only if the policy is ON, or if we
 	# previously enrolled ships and now need to release them.
 	trigger = {
+		# PERF: every policy that enables this mod's features has ai_weight = 0, so no AI
+		# empire can ever hold the flag below - yet on_monthly_pulse_country still fires
+		# this event for all ~25-30 empires every month. is_ai is an O(1) check that
+		# short-circuits the whole trigger for every AI empire.
+		is_ai = no
 		OR = {
 			has_policy_flag = go_smartbuild_active
 			has_country_flag = go_smartbuild_enrolled

@@ -22,6 +22,11 @@ country_event = {
 	is_triggered_only = yes
 
 	trigger = {
+		# PERF: every policy that enables this mod's features has ai_weight = 0, so no AI
+		# empire can ever hold the flag below - yet on_monthly_pulse_country still fires
+		# this event for all ~25-30 empires every month. is_ai is an O(1) check that
+		# short-circuits the whole trigger for every AI empire.
+		is_ai = no
 		has_policy_flag = galactic_overhaul_active
 		resource_stockpile_compare = { resource = go_banked_credits value > 0 }
 	}
@@ -137,6 +142,11 @@ country_event = {
 	is_triggered_only = yes
 
 	trigger = {
+		# PERF: every policy that enables this mod's features has ai_weight = 0, so no AI
+		# empire can ever hold the flag below - yet on_monthly_pulse_country still fires
+		# this event for all ~25-30 empires every month. is_ai is an O(1) check that
+		# short-circuits the whole trigger for every AI empire.
+		is_ai = no
 		has_policy_flag = treasury_automation_active
 	}
 
@@ -195,6 +205,11 @@ country_event = {
 	is_triggered_only = yes
 
 	trigger = {
+		# PERF: every policy that enables this mod's features has ai_weight = 0, so no AI
+		# empire can ever hold the flag below - yet on_monthly_pulse_country still fires
+		# this event for all ~25-30 empires every month. is_ai is an O(1) check that
+		# short-circuits the whole trigger for every AI empire.
+		is_ai = no
 		has_policy_flag = go_tax_active
 	}
 
@@ -270,6 +285,11 @@ country_event = {
 	is_triggered_only = yes
 
 	trigger = {
+		# PERF: every policy that enables this mod's features has ai_weight = 0, so no AI
+		# empire can ever hold the flag below - yet on_monthly_pulse_country still fires
+		# this event for all ~25-30 empires every month. is_ai is an O(1) check that
+		# short-circuits the whole trigger for every AI empire.
+		is_ai = no
 		has_policy_flag = galactic_overhaul_active
 	}
 

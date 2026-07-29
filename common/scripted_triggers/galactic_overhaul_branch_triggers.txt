@@ -35,4 +35,26 @@ go_bo_colony_qualifies = {
 		is_planet_class = pc_gray_goo
 		is_planet_class = pc_cosmogenesis_world
 	}
+
+	# CRIMINAL-ONLY GUARDS. establish_branch_office bypasses the vanilla eligibility
+	# rule, so when we ignored these the engine simply CLOSED the office again on its
+	# next validity pass and we reopened it the following month - the build/remove
+	# churn seen in the 2026-07-29 criminal-heritage playtest (6 opens across only 3
+	# planets; one planet opened 3 times). Mirrors can_build_branch_office_on_colony
+	# (common/game_rules/00_rules.txt ~2168-2192):
+	#   BRANCH_OFFICE_CRIMINAL_HERITAGE_HAS_TRUCE - no truce with, or war against, the host
+	#   BRANCH_OFFICE_CRIMINAL_COOLDOWN           - not inside the reopen cooldown
+	OR = {
+		root = { is_criminal_syndicate = no }
+		AND = {
+			exists = owner
+			owner = {
+				NOR = {
+					has_truce = root
+					is_at_war_with = root
+				}
+			}
+			NOT = { has_carrier_flag = criminal_branch_closed_cooldown_planet@root }
+		}
+	}
 }

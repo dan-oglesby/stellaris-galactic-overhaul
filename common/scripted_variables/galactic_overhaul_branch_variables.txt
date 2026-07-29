@@ -19,3 +19,8 @@
 @go_bo_holding_influence_neg = -25
 @go_bo_holding_minerals      = 500
 @go_bo_holding_minerals_neg  = -500
+
+# Diversity rotation: how many tier-3 candidates each ladder cycles through, so
+# branch offices end up well-rounded instead of all receiving the same holding.
+# Must match the candidate-list length in galactic_overhaul_branch_effects.txt (6).
+@go_bo_rotate_slots = 6

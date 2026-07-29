@@ -22,6 +22,15 @@ go_bo_do_build_holding = {
 	root = {
 		add_resource = { influence = @go_bo_holding_influence_neg minerals = @go_bo_holding_minerals_neg }
 		change_variable = { which = go_bo_hbudget value = -1 }
+		# Advance the diversity rotation so the NEXT office starts from a different
+		# candidate. Without this the ladder is a fixed if/else_if chain and every
+		# office ends up with whatever matches first (the 2026-07-28 playtest built
+		# building_private_shipyards 58 times in a row).
+		change_variable = { which = go_bo_rotate value = 1 }
+		if = {
+			limit = { check_variable = { which = go_bo_rotate value >= @go_bo_rotate_slots } }
+			set_variable = { which = go_bo_rotate value = 0 }
+		}
 		if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_BRANCH: built $HOLDING$ (macro-free: scripted_effect logs don't render scope tokens)" }
 	}
 }
@@ -41,6 +50,13 @@ go_bo_do_build_holding = {
 # references root.owner, and our root is the megacorp rather than the planet.
 # ---------------------------------------------------------------------------
 go_bo_build_best_holding = {
+	# seed the diversity rotation on first use
+	root = {
+		if = {
+			limit = { NOT = { is_variable_set = go_bo_rotate } }
+			set_variable = { which = go_bo_rotate value = 0 }
+		}
+	}
 	if = {
 		limit = { root = { is_criminal_syndicate = yes } }
 		go_bo_build_best_holding_criminal = yes
@@ -126,7 +142,37 @@ go_bo_build_best_holding_legit = {
 		go_bo_do_build_holding = { HOLDING = building_food_conglomerate }
 	}
 
-	# ===================== PRIORITY 3: default (fill the slot with trade/value) =====================
+		# ===================== PRIORITY 3: DIVERSITY ROTATION =====================
+	# Deficits are handled above. Beyond that we want branch offices to be WELL
+	# ROUNDED rather than all identical, so the pick rotates: each build advances
+	# go_bo_rotate, so successive offices start from a different candidate.
+	# If the rotated choice is already on this planet we fall through to the
+	# fixed-order sweep below, which fills whatever is still missing.
+	else_if = {
+		limit = { root = { check_variable = { which = go_bo_rotate value = 0 } } NOT = { has_holding = { holding = building_commercial_forum owner = root } } }
+		go_bo_do_build_holding = { HOLDING = building_commercial_forum }
+	}
+	else_if = {
+		limit = { root = { check_variable = { which = go_bo_rotate value = 1 } } NOT = { has_holding = { holding = building_private_research_initiative owner = root } } }
+		go_bo_do_build_holding = { HOLDING = building_private_research_initiative }
+	}
+	else_if = {
+		limit = { root = { check_variable = { which = go_bo_rotate value = 2 } } NOT = { has_holding = { holding = building_public_relations_office owner = root } } }
+		go_bo_do_build_holding = { HOLDING = building_public_relations_office }
+	}
+	else_if = {
+		limit = { root = { check_variable = { which = go_bo_rotate value = 3 } } NOT = { has_holding = { holding = building_military_contractors owner = root } } }
+		go_bo_do_build_holding = { HOLDING = building_military_contractors }
+	}
+	else_if = {
+		limit = { root = { check_variable = { which = go_bo_rotate value = 4 } } NOT = { has_holding = { holding = building_industrial_subsidiary owner = root } } }
+		go_bo_do_build_holding = { HOLDING = building_industrial_subsidiary }
+	}
+	else_if = {
+		limit = { root = { check_variable = { which = go_bo_rotate value = 5 } } NOT = { has_holding = { holding = building_amusement_megaplex owner = root } } }
+		go_bo_do_build_holding = { HOLDING = building_amusement_megaplex }
+	}
+	# fallback: rotated pick already present - fill the first missing candidate
 	else_if = {
 		limit = { NOT = { has_holding = { holding = building_commercial_forum owner = root } } }
 		go_bo_do_build_holding = { HOLDING = building_commercial_forum }
@@ -135,14 +181,26 @@ go_bo_build_best_holding_legit = {
 		limit = { NOT = { has_holding = { holding = building_private_research_initiative owner = root } } }
 		go_bo_do_build_holding = { HOLDING = building_private_research_initiative }
 	}
+	else_if = {
+		limit = { NOT = { has_holding = { holding = building_public_relations_office owner = root } } }
+		go_bo_do_build_holding = { HOLDING = building_public_relations_office }
+	}
+	else_if = {
+		limit = { NOT = { has_holding = { holding = building_military_contractors owner = root } } }
+		go_bo_do_build_holding = { HOLDING = building_military_contractors }
+	}
+	else_if = {
+		limit = { NOT = { has_holding = { holding = building_industrial_subsidiary owner = root } } }
+		go_bo_do_build_holding = { HOLDING = building_industrial_subsidiary }
+	}
+	else_if = {
+		limit = { NOT = { has_holding = { holding = building_amusement_megaplex owner = root } } }
+		go_bo_do_build_holding = { HOLDING = building_amusement_megaplex }
+	}
 	else = {
-		if = {
-			limit = { NOT = { has_holding = { holding = building_public_relations_office owner = root } } }
-			go_bo_do_build_holding = { HOLDING = building_public_relations_office }
-		}
+		if = { limit = { root = { go_debug_on = yes } } log = "GALACTIC_OVERHAUL_BRANCH: legit office already has every rotation candidate" }
 	}
 }
-
 # ---------------------------------------------------------------------------
 # Criminal syndicates: the 11 buildings gated on is_illegal_criminal = yes.
 # They mirror the legit set role-for-role AND respond to the SAME civics, so the
@@ -222,7 +280,37 @@ go_bo_build_best_holding_criminal = {
 		go_bo_do_build_holding = { HOLDING = building_bio_reprocessing_facilities }
 	}
 
-	# ---------- PRIORITY 3: defaults ----------
+		# ===================== PRIORITY 3: DIVERSITY ROTATION =====================
+	# Deficits are handled above. Beyond that we want branch offices to be WELL
+	# ROUNDED rather than all identical, so the pick rotates: each build advances
+	# go_bo_rotate, so successive offices start from a different candidate.
+	# If the rotated choice is already on this planet we fall through to the
+	# fixed-order sweep below, which fills whatever is still missing.
+	else_if = {
+		limit = { root = { check_variable = { which = go_bo_rotate value = 0 } } NOT = { has_holding = { holding = building_smuggling_rings owner = root } } }
+		go_bo_do_build_holding = { HOLDING = building_smuggling_rings }
+	}
+	else_if = {
+		limit = { root = { check_variable = { which = go_bo_rotate value = 1 } } NOT = { has_holding = { holding = building_illicit_research_labs owner = root } } }
+		go_bo_do_build_holding = { HOLDING = building_illicit_research_labs }
+	}
+	else_if = {
+		limit = { root = { check_variable = { which = go_bo_rotate value = 2 } } NOT = { has_holding = { holding = building_syndicate_outreach_office owner = root } } }
+		go_bo_do_build_holding = { HOLDING = building_syndicate_outreach_office }
+	}
+	else_if = {
+		limit = { root = { check_variable = { which = go_bo_rotate value = 3 } } NOT = { has_holding = { holding = building_pirate_haven owner = root } } }
+		go_bo_do_build_holding = { HOLDING = building_pirate_haven }
+	}
+	else_if = {
+		limit = { root = { check_variable = { which = go_bo_rotate value = 4 } } NOT = { has_holding = { holding = building_disinformation_center owner = root } } }
+		go_bo_do_build_holding = { HOLDING = building_disinformation_center }
+	}
+	else_if = {
+		limit = { root = { check_variable = { which = go_bo_rotate value = 5 } } NOT = { has_holding = { holding = building_underground_clubs owner = root } } }
+		go_bo_do_build_holding = { HOLDING = building_underground_clubs }
+	}
+	# fallback: rotated pick already present - fill the first missing candidate
 	else_if = {
 		limit = { NOT = { has_holding = { holding = building_smuggling_rings owner = root } } }
 		go_bo_do_build_holding = { HOLDING = building_smuggling_rings }
@@ -231,10 +319,23 @@ go_bo_build_best_holding_criminal = {
 		limit = { NOT = { has_holding = { holding = building_illicit_research_labs owner = root } } }
 		go_bo_do_build_holding = { HOLDING = building_illicit_research_labs }
 	}
+	else_if = {
+		limit = { NOT = { has_holding = { holding = building_syndicate_outreach_office owner = root } } }
+		go_bo_do_build_holding = { HOLDING = building_syndicate_outreach_office }
+	}
+	else_if = {
+		limit = { NOT = { has_holding = { holding = building_pirate_haven owner = root } } }
+		go_bo_do_build_holding = { HOLDING = building_pirate_haven }
+	}
+	else_if = {
+		limit = { NOT = { has_holding = { holding = building_disinformation_center owner = root } } }
+		go_bo_do_build_holding = { HOLDING = building_disinformation_center }
+	}
+	else_if = {
+		limit = { NOT = { has_holding = { holding = building_underground_clubs owner = root } } }
+		go_bo_do_build_holding = { HOLDING = building_underground_clubs }
+	}
 	else = {
-		if = {
-			limit = { NOT = { has_holding = { holding = building_syndicate_outreach_office owner = root } } }
-			go_bo_do_build_holding = { HOLDING = building_syndicate_outreach_office }
-		}
+		if = { limit = { root = { go_debug_on = yes } } log = "GALACTIC_OVERHAUL_BRANCH: criminal office already has every rotation candidate" }
 	}
 }

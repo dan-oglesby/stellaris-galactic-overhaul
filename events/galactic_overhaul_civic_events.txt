@@ -17,6 +17,9 @@ country_event = {
 	# PERF: also require the matching institution to be UNfounded, so once both exist this
 	# event stops firing entirely instead of re-entering `immediate` every month forever.
 	trigger = {
+		# Belt and braces alongside ai_weight = 0: never let an AI empire's civic found a
+		# galaxy-wide institution on everyone's behalf.
+		is_ai = no
 		OR = {
 			AND = {
 				has_civic = civic_go_banking_charter

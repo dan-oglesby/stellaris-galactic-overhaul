@@ -4,7 +4,11 @@ resolution_category_galactic_overhaul = {
 	group = commerce_industry
 	icon = "GFX_resolution_galactic_market"
 
+	# BOTH resolutions must be listed here. resolution_galactic_overhaul_rehost was
+	# defined but belonged to no category, so the repeatable re-host vote never
+	# appeared in the Galactic Community at all.
 	resolution_types = {
 		"resolution_galactic_overhaul_charter"
+		"resolution_galactic_overhaul_rehost"
 	}
 }

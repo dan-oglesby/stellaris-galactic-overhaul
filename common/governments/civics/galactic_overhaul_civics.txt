@@ -18,8 +18,12 @@ civic_go_banking_charter = {
 		country_resource_max_trade_add = 10000
 	}
 
+	# AI weight 0: these civics found a GALAXY-WIDE institution the moment their owner
+	# exists. An AI rolling one silently founds the Galactic Market (or charters the
+	# Bank) for everyone at game start - reported 2026-07-29 as "the market fired and I
+	# did not have that civic". These are player-facing choices; the AI does not get them.
 	ai_weight = {
-		weight = 5
+		weight = 0
 	}
 }
 
@@ -37,7 +41,11 @@ civic_go_market_authority = {
 		country_resource_max_trade_add = 5000
 	}
 
+	# AI weight 0: these civics found a GALAXY-WIDE institution the moment their owner
+	# exists. An AI rolling one silently founds the Galactic Market (or charters the
+	# Bank) for everyone at game start - reported 2026-07-29 as "the market fired and I
+	# did not have that civic". These are player-facing choices; the AI does not get them.
 	ai_weight = {
-		weight = 5
+		weight = 0
 	}
 }

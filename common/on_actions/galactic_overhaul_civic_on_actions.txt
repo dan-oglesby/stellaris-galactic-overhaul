@@ -2,8 +2,10 @@
 # also triggers it). The .1 event's founded-flag guards make it idempotent.
 on_game_start_country = {
 	events = {
-		galactic_overhaul_civic.1
+		# .4 (convert AI megacorps) runs FIRST: otherwise an AI megacorp holding a
+		# founding civic founds the institution before it is converted away.
 		galactic_overhaul_civic.4
+		galactic_overhaul_civic.1
 	}
 }
 

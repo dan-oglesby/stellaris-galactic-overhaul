@@ -154,6 +154,8 @@ country_event = {
 		# Run the trade engine per resource, then log the result HERE (event scope, where
 		# [This.x] macros resolve - they do not render inside the scripted effect).
 		# act: 0 = no action, 1 = sold surplus, 2 = bought to cover a deficit.
+		# Reset the "did the opportunistic layer trade this month" marker before the sweep.
+		set_variable = { which = go_opp_traded value = 0 }
 		# --- Basic resources: reserve target 25% of cap, up to 1000/month ---
 		galactic_overhaul_trade_resource = { RESOURCE = energy TARGETFRAC = 0.25 MAXMONTH = 1000 }
 		if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_TRADE: [This.GetName] energy act=[This.go_t_action] amt=[This.go_t_amt] stock=[This.go_t_stock] cap=[This.go_t_max] inc=[This.go_t_income] price=[This.go_t_price]" }
@@ -177,12 +179,19 @@ country_event = {
 		if = {
 			limit = {
 				has_policy_flag = go_trade_opportunistic
+				# Only bill for work actually done. In the 2026-07-29 playtest this fee was
+				# charged 241 months running while the opportunistic layer made ZERO trades
+				# (act=3 and act=4 both 0) - roughly 48,000 trade burned for nothing, which
+				# is a large part of why the desk sat pinned at its 2000-trade floor and
+				# could barely restock alloys.
+				check_variable = { which = go_opp_traded value = 1 }
 				# don't drive trade negative just to pay the desk fee
 				resource_stockpile_compare = { resource = trade value >= @go_opp_fee }
 			}
 			add_resource = { trade = @go_opp_fee_neg }
 			if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_TRADE: [This.GetName] opportunistic desk fee charged" }
 		}
+		clear_variable = go_opp_traded
 		clear_variable = go_t_action
 		clear_variable = go_t_amt
 		clear_variable = go_t_stock

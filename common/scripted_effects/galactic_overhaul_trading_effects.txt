@@ -283,6 +283,9 @@ galactic_overhaul_trade_resource = {
 					if = { limit = { NOT = { is_variable_set = go_opp_pnl } } set_variable = { which = go_opp_pnl value = 0 } }
 					subtract_variable = { which = go_opp_pnl value = go_t_cost }
 					set_variable = { which = go_t_action value = 3 }
+					# mark the month as actively traded, so the desk fee is only charged when the
+					# opportunistic layer ACTUALLY did something (see galactic_overhaul.2)
+					root = { set_variable = { which = go_opp_traded value = 1 } }
 				}
 			}
 		}
@@ -308,6 +311,9 @@ galactic_overhaul_trade_resource = {
 				if = { limit = { NOT = { is_variable_set = go_opp_pnl } } set_variable = { which = go_opp_pnl value = 0 } }
 				change_variable = { which = go_opp_pnl value = go_t_gain }
 				set_variable = { which = go_t_action value = 4 }
+				# mark the month as actively traded, so the desk fee is only charged when the
+				# opportunistic layer ACTUALLY did something (see galactic_overhaul.2)
+				root = { set_variable = { which = go_opp_traded value = 1 } }
 			}
 		}
 

@@ -24,3 +24,7 @@
 # branch offices end up well-rounded instead of all receiving the same holding.
 # Must match the candidate-list length in galactic_overhaul_branch_effects.txt (6).
 @go_bo_rotate_slots = 6
+
+# How long to wait before re-attempting a holding that did not take on a given planet.
+# Stops a silently-refused add_holding from re-billing every monthly sweep.
+@go_bo_retry_days = 3600

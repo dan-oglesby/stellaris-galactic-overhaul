@@ -18,6 +18,19 @@
 # NOTE: $HOLDING$ is a parse-time param (safe in a log); scope macros like
 # [This.x] are NOT rendered in scripted_effect logs, so none are used here.
 go_bo_do_build_holding = {
+	# ATTEMPT MARKER. add_holding bypasses the building's own potential/allow checks, so it
+	# can silently refuse (or produce something has_holding does not report) - and we charge
+	# unconditionally. In the 2026-07-30 playtest that meant building_underground_chemists
+	# was "built" three times on the SAME office, billing 25 influence + 500 minerals each
+	# time, because the has_holding guard in the ladder never saw it and re-picked it every
+	# sweep. A timed per-planet, per-holding flag caps that at one attempt per window
+	# instead of one per month, whether or not has_holding reports the result immediately.
+	if = {
+		limit = { has_planet_flag = go_bo_tried_$HOLDING$ }
+		if = { limit = { root = { go_debug_on = yes } } log = "GALACTIC_OVERHAUL_BRANCH: skipping $HOLDING$ - attempted here recently" }
+	}
+	else = {
+	set_timed_planet_flag = { flag = go_bo_tried_$HOLDING$ days = @go_bo_retry_days }
 	add_holding = { holding = $HOLDING$ owner = root }
 	root = {
 		add_resource = { influence = @go_bo_holding_influence_neg minerals = @go_bo_holding_minerals_neg }
@@ -32,6 +45,7 @@ go_bo_do_build_holding = {
 			set_variable = { which = go_bo_rotate value = 0 }
 		}
 		if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_BRANCH: built $HOLDING$ (macro-free: scripted_effect logs don't render scope tokens)" }
+	}
 	}
 }
 

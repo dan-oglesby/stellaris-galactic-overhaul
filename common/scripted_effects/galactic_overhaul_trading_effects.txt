@@ -157,13 +157,24 @@ galactic_overhaul_trade_resource = {
 		}
 	}
 
-	# ===================== SELL: near cap AND surplus income AND trade has room =====================
+	# ===================== SELL: wasting stock AND trade has room =====================
+	# Two ways a resource is going to waste:
+	#   (a) near cap (>= cap * sell_cap_frac) WITH positive income - it will overflow soon;
+	#   (b) ALREADY OVER the cap - it is overflowing right now, and income sign is
+	#       irrelevant because the excess is being lost every month regardless.
+	# Case (b) was missing: the 2026-07-29 playtest had minerals sitting at 42,215 against
+	# a 35,000 cap (120%) with income -64, and the desk refused to sell because the old
+	# rule required income > 0. That is exactly backwards - above the cap, selling is the
+	# only way to recover any value at all.
 	if = {
 		limit = {
 			check_variable = { which = go_t_price value > 0 }
 			check_variable = { which = go_t_max value > 0 }
 			check_variable = { which = go_t_stock value >= go_t_sellthresh }
-			check_variable = { which = go_t_income value > 0 }
+			OR = {
+				check_variable = { which = go_t_income value > 0 }
+				check_variable = { which = go_t_stock value > go_t_max }
+			}
 			check_variable = { which = go_t_tradefull value = 0 }
 		}
 		# sell down to cap * keep_frac, capped per month

@@ -157,10 +157,27 @@ country_event = {
 		# Reset the "did the opportunistic layer trade this month" marker before the sweep.
 		set_variable = { which = go_opp_traded value = 0 }
 		# --- Basic resources: reserve target 25% of cap, up to 1000/month ---
-		galactic_overhaul_trade_resource = { RESOURCE = energy TARGETFRAC = 0.25 MAXMONTH = 1000 }
-		if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_TRADE: [This.GetName] energy act=[This.go_t_action] amt=[This.go_t_amt] stock=[This.go_t_stock] cap=[This.go_t_max] inc=[This.go_t_income] price=[This.go_t_price]" }
-		galactic_overhaul_trade_resource = { RESOURCE = minerals TARGETFRAC = 0.25 MAXMONTH = 1000 }
-		if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_TRADE: [This.GetName] minerals act=[This.go_t_action] amt=[This.go_t_amt] stock=[This.go_t_stock] cap=[This.go_t_max] inc=[This.go_t_income] price=[This.go_t_price]" }
+		# NOMADIC EMPIRES: energy and minerals are not independent stockpiles. The vanilla
+		# nomadic_operational_reserves converter (common/resource_converters) pools them into
+		# Operational Reserves - should_cap = no, bottomless = yes, visible_stockpile = no, and
+		# they are mutually payable 1:1. Three reasons this desk must leave them alone there:
+		#   1. no cap, so our cap-relative restock/sell thresholds are meaningless;
+		#   2. bottomless, so they can never run dry and restocking is pointless;
+		#   3. can_sell = no - the game FORBIDS selling them, and add_resource bypasses market
+		#      rules, so selling here would mint trade from a resource that cannot legally be
+		#      sold. That is a cheat, not automation.
+		# Strategics are unaffected (the converter only grants them override_trade_restriction),
+		# and food / alloys / consumer goods are untouched by it entirely.
+		if = {
+			limit = { NOT = { is_nomadic = yes } }
+			galactic_overhaul_trade_resource = { RESOURCE = energy TARGETFRAC = 0.25 MAXMONTH = 1000 }
+			if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_TRADE: [This.GetName] energy act=[This.go_t_action] amt=[This.go_t_amt] stock=[This.go_t_stock] cap=[This.go_t_max] inc=[This.go_t_income] price=[This.go_t_price]" }
+			galactic_overhaul_trade_resource = { RESOURCE = minerals TARGETFRAC = 0.25 MAXMONTH = 1000 }
+			if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_TRADE: [This.GetName] minerals act=[This.go_t_action] amt=[This.go_t_amt] stock=[This.go_t_stock] cap=[This.go_t_max] inc=[This.go_t_income] price=[This.go_t_price]" }
+		}
+		else = {
+			if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_TRADE: [This.GetName] nomadic - energy/minerals are pooled Operational Reserves, desk skipping them" }
+		}
 		galactic_overhaul_trade_resource = { RESOURCE = food TARGETFRAC = 0.25 MAXMONTH = 1000 }
 		if = { limit = { go_debug_on = yes } log = "GALACTIC_OVERHAUL_TRADE: [This.GetName] food act=[This.go_t_action] amt=[This.go_t_amt] stock=[This.go_t_stock] cap=[This.go_t_max] inc=[This.go_t_income] price=[This.go_t_price]" }
 		galactic_overhaul_trade_resource = { RESOURCE = alloys TARGETFRAC = 0.25 MAXMONTH = 1000 }

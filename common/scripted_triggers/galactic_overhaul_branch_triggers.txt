@@ -30,6 +30,17 @@ go_bo_host_relationship = {
 go_bo_colony_qualifies = {
 	is_colony = yes
 	has_branch_office = no
+
+	# VIABILITY: the office must be able to host holdings, or the influence is wasted.
+	# Branch-office building slots come ENTIRELY from the HOST planet's capital tier via
+	# planet_max_branch_office_buildings_add (common/buildings/00_capital_buildings.txt):
+	#   building_capital +1, building_major_capital +2, building_system_capital +4,
+	#   imperial +4, machine/hive imperial +3, hab and resort/slave variants +1/+2/+4.
+	# building_colony_shelter - the starting colony capital - is the ONE tier that grants
+	# NOTHING, and BASE_PLANET_BRANCH_OFFICE_BUILDING_SLOTS is 0, so an office on a colony
+	# still running a shelter has zero slots forever and can never host a single holding.
+	# We were opening offices there and paying 75 influence for an empty shell.
+	NOT = { has_building = building_colony_shelter }
 	NOR = {
 		is_planet_class = pc_ai
 		is_planet_class = pc_gray_goo

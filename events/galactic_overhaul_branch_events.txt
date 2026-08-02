@@ -92,3 +92,35 @@ country_event = {
 		clear_variable = go_bo_hbudget
 	}
 }
+
+# ============================================================================
+# go_branch.2 - remember that a branch office was CLOSED here, so the sweep does
+# not immediately re-open it and pay the 75 influence again.
+#
+# Hooked to vanilla's on_branch_office_closed, which documents its scopes as:
+#   THIS = Colony: Branch office colony
+#   FROM = Country: Branch office owner
+# (common/on_actions/00_on_actions.txt:4584-4586)
+#
+# The flag is keyed to the owner (@from) exactly as vanilla keys its own
+# criminal_branch_closed_cooldown_planet@<owner>, so one megacorp's closure never
+# blocks a different one. Duration matches vanilla's cooldown: 3600 days.
+# ============================================================================
+planet_event = {
+	id = go_branch.2
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		# only track closures for empires actually running our automation
+		from = { has_policy_flag = go_branch_active }
+	}
+
+	immediate = {
+		set_timed_planet_flag = { flag = go_bo_closed_cooldown@from days = @go_bo_reopen_cooldown_days }
+		if = {
+			limit = { from = { go_debug_on = yes } }
+			log = "GALACTIC_OVERHAUL_BRANCH: office closed on [This.GetName] - re-open on cooldown"
+		}
+	}
+}

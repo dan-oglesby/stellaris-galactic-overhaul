@@ -28,3 +28,8 @@
 # How long to wait before re-attempting a holding that did not take on a given planet.
 # Stops a silently-refused add_holding from re-billing every monthly sweep.
 @go_bo_retry_days = 3600
+
+# How long to leave a world alone after one of OUR branch offices there was closed.
+# Matches vanilla's own criminal_branch_closed_cooldown (events/crime_events.txt:2687,
+# 2695), which uses 3600 days.
+@go_bo_reopen_cooldown_days = 3600

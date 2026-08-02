@@ -4,3 +4,11 @@ on_monthly_pulse_country = {
 		go_branch.1
 	}
 }
+
+# Track branch-office closures so the sweep does not immediately re-open (and re-pay).
+# THIS = the colony, FROM = the office owner.
+on_branch_office_closed = {
+	events = {
+		go_branch.2
+	}
+}

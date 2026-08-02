@@ -41,6 +41,13 @@ go_bo_colony_qualifies = {
 	# still running a shelter has zero slots forever and can never host a single holding.
 	# We were opening offices there and paying 75 influence for an empty shell.
 	NOT = { has_building = building_colony_shelter }
+
+	# RE-OPEN COOLDOWN. If we (root) previously had an office here that was closed, wait
+	# before spending another 75 influence on the same world - the reason it closed
+	# (host action, war, lost relationship) usually has not gone away yet. Set by
+	# go_branch.2 off vanilla's on_branch_office_closed, keyed to the owner so another
+	# megacorp's closure never blocks us.
+	NOT = { has_planet_flag = go_bo_closed_cooldown@root }
 	NOR = {
 		is_planet_class = pc_ai
 		is_planet_class = pc_gray_goo

@@ -2,6 +2,9 @@
 # Each stance sets a target rate the monthly revenue service (galactic_overhaul.3) drifts
 # toward. Available to conventional (non-gestalt) empires; no charter required.
 taxation_doctrine = {
+	# 4.5 groups policies under collapsible category headers. Natural home plus the mod's own
+	# group, so every Galactic Overhaul toggle can be found in one place. Cosmetic; save-safe.
+	category = { economy galactic_overhaul }
 	potential = {
 		is_country_type = default
 		is_gestalt = no		# gestalts have no private commerce / trade value

@@ -3,6 +3,9 @@
 # they roam to eligible systems and auto-build. Phase 1 = outposts.
 # NOTE: overlaps Ultimate Automation - disable UA's construction automation when using this.
 smart_build = {
+	# 4.5 groups policies under collapsible category headers. Natural home plus the mod's own
+	# group, so every Galactic Overhaul toggle can be found in one place. Cosmetic; save-safe.
+	category = { economy galactic_overhaul }
 	potential = {
 		is_country_type = default
 	}

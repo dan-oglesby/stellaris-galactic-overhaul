@@ -3,6 +3,9 @@
 # managed resources. Separate from the Galactic Banking (interest) policy; same gate
 # (chartered + Community member).
 treasury_automation = {
+	# 4.5 groups policies under collapsible category headers. Natural home plus the mod's own
+	# group, so every Galactic Overhaul toggle can be found in one place. Cosmetic; save-safe.
+	category = { economy galactic_overhaul }
 	# Available to any regular empire WITHOUT the Galactic Bank charter. It trades on
 	# whatever market the empire has: the internal market (available from game start)
 	# before the Galactic Market is founded, the galactic market afterwards. The trade

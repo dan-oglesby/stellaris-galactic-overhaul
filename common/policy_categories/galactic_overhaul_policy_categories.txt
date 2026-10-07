@@ -1,0 +1,5 @@
+# Galactic Overhaul's own policy group (4.5 policy categories). Every mod policy also lists its
+# natural vanilla category, so it appears in both places. Distinct filename: never shadow
+# vanilla's 00_policy_categories.txt. Icon kept in the icon field, not the loc string - the UI
+# sorts groups alphabetically by localized name.
+galactic_overhaul = { icon = "economy" }

@@ -51,3 +51,5 @@
  ta_opportunistic:0 "Opportunistic Trading Desk"
  ta_opportunistic_desc:0 "Everything the Algorithmic desk does, plus genuine active trading: the desk tracks a rolling average price for each commodity and buys when it is cheap against that average, selling when it is dear - on a tighter spread than forced trades, so patient trading accumulates trade over time rather than bleeding it. It never sells below the reserve the restock logic defends. Charges a monthly management fee; watch the running Trading Desk Profit in the Galactic Bank panel."
  go_trade_opportunistic_name:0 "Opportunistic Desk"
+ policy_category_galactic_overhaul:0 "Galactic Overhaul Policies"
+ policy_category_galactic_overhaul_desc:0 "Automation, banking, taxation and trading-desk policies added by the Galactic Overhaul mod."

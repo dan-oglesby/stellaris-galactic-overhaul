@@ -11,6 +11,9 @@
 # interest percentages in events/galactic_overhaul_events.txt.
 
 galactic_overhaul_banking = {
+	# 4.5 groups policies under collapsible category headers. Natural home plus the mod's own
+	# group, so every Galactic Overhaul toggle can be found in one place. Cosmetic; save-safe.
+	category = { economy galactic_overhaul }
 	# Only available once the Galactic Bank has been chartered by the Community,
 	# and only to Community members (the bank is a galactic institution).
 	potential = {

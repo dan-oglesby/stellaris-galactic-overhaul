@@ -11,6 +11,9 @@
 # check (galactic_overhaul_colony.4) reports whether that hand-off is working.
 
 auto_colonization = {
+	# 4.5 groups policies under collapsible category headers. Natural home plus the mod's own
+	# group, so every Galactic Overhaul toggle can be found in one place. Cosmetic; save-safe.
+	category = { society galactic_overhaul }
 	potential = {
 		is_country_type = default
 	}

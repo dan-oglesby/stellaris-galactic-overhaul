@@ -2,7 +2,7 @@
 
 A multi-feature **economic & automation overhaul** for **Stellaris 4.4 "Pegasus"**.
 
-`version 0.32.0` · `supported_version 4.5.*` · tags: Economy, Gameplay
+`version 0.33.0` · `supported_version 4.5.*` · tags: Economy, Gameplay
 
 ## Features
 
@@ -25,7 +25,7 @@ Stellaris loads local mods via a `.mod` file in `Documents\Paradox Interactive\S
 2. Create `Documents\Paradox Interactive\Stellaris\mod\galactic_overhaul.mod`:
    ```
    name="Galactic Overhaul"
-   version="0.32.0"
+   version="0.33.0"
    tags={
        "Economy"
        "Gameplay"

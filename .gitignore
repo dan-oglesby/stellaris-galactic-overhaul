@@ -12,3 +12,6 @@ desktop.ini
 
 # cloud-sync conflict artifacts (Proton Drive / OneDrive)
 *Edit conflict*
+
+# Generated from the installed Galactic Stock Market (third-party markup; never committed)
+interface/zz_go_gsm_regulation.gui

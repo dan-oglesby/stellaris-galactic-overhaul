@@ -1,0 +1,9 @@
+# Galactic Stock Market compatibility - which Dividend Reinvestment option is in force.
+# Used by the card Galactic Overhaul adds to GSM's regulation page (button effects in
+# galactic_overhaul_gsm_reg_button_effects.txt). Country scope.
+
+go_drip_is_off = {
+	NOT = { has_policy_flag = go_drip_active }
+	NOT = { has_policy_flag = go_drip_index }
+	NOT = { has_policy_flag = go_drip_desk }
+}

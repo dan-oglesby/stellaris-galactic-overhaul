@@ -2,7 +2,7 @@
 
 A multi-feature **economic & automation overhaul** for **Stellaris 4.4 "Pegasus"**.
 
-`version 0.31.0` · `supported_version 4.5.*` · tags: Economy, Gameplay
+`version 0.32.0` · `supported_version 4.5.*` · tags: Economy, Gameplay
 
 ## Features
 
@@ -14,7 +14,7 @@ A multi-feature **economic & automation overhaul** for **Stellaris 4.4 "Pegasus"
 - **Science Automation** — keeps science ships crewed by recruiting/assigning scientists.
 - **Branch Office Automation** (megacorp) — an empire-wide policy that opens branch offices on qualifying colonies (of empires you have a commercial pact / federation / subject relationship with) and builds the most beneficial holding on each: **prioritizing the holdings your civics supercharge** (which grant extra capital Trader jobs), then your empire's resource shortfalls, then trade. Pays the real influence + mineral costs, rate-limited per month. Requires Corporate authority + the MegaCorp DLC.
 - **No AI megacorps** (optional rule) — AI corporate empires are converted to oligarchic at game start, so the megacorp niche is yours.
-- **Dividend Reinvestment** *(compatibility with [Galactic Stock Market](https://steamcommunity.com/sharedfiles/filedetails/?id=3813910097))* — a policy for what happens to quarterly dividends: take them as trade, **reinvest** each company's dividend in that company, or build an **index portfolio**, putting all dividends into the companies furthest below their market-cap weight in the Galactic Composite Index (new money only, never sells). Purchases go through the stock market's own buy path (fee, price impact, foreign-ownership limits, affordability). Whole shares only; the remainder stays as trade. The policy only appears when Galactic Stock Market is running, and nothing of that mod is overridden.
+- **Dividend Reinvestment** *(compatibility with [Galactic Stock Market](https://steamcommunity.com/sharedfiles/filedetails/?id=3813910097))* — a policy for what happens to quarterly dividends: take them as trade, **reinvest** each company's dividend in that company, or build an **index portfolio**, putting all dividends into the companies furthest below their market-cap weight in the Galactic Composite Index (new money only, never sells). A fourth setting, **Active Desk**, trades quarterly against each company's fundamental value: it sells positions at 125%+ of value or in distress (never your own empire's companies), and buys the best value at 85% or below, from 15% of trade above a 2,000 reserve, with at most 25% of the portfolio in any one company. Purchases go through the stock market's own buy path (fee, price impact, foreign-ownership limits, affordability). Whole shares only; the remainder stays as trade. The policy only appears when Galactic Stock Market is running, and nothing of that mod is overridden.
 - Custom resource (Banked Credits), a strongest-economy Galactic Market host override, and always-on debug logging.
 
 ## Deploying (local dev)
@@ -25,7 +25,7 @@ Stellaris loads local mods via a `.mod` file in `Documents\Paradox Interactive\S
 2. Create `Documents\Paradox Interactive\Stellaris\mod\galactic_overhaul.mod`:
    ```
    name="Galactic Overhaul"
-   version="0.31.0"
+   version="0.32.0"
    tags={
        "Economy"
        "Gameplay"

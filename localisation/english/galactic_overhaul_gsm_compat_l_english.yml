@@ -1,6 +1,6 @@
 ﻿l_english:
  policy_go_dividend_reinvestment:0 "Dividend Reinvestment"
- policy_go_dividend_reinvestment_desc:0 "Galactic Overhaul compatibility with Galactic Stock Market. What happens to the dividends your shareholdings pay each quarter: taken as trade, reinvested in the companies that paid them, or used to build an index-like portfolio."
+ policy_go_dividend_reinvestment_desc:0 "Galactic Overhaul compatibility with Galactic Stock Market. What happens to the dividends your shareholdings pay each quarter: taken as trade, reinvested in the companies that paid them, used to build an index-like portfolio, or handed to an active trading desk."
  go_dividend_reinvestment:0 "Dividend Reinvestment"
  go_dividend_reinvestment_desc:0 "Choose what happens to Galactic Stock Market dividends."
  go_drip_off:0 "Take Dividends as Trade"
@@ -9,5 +9,8 @@
  go_drip_on_desc:0 "After each quarterly payout, what each company paid you is spent on more of its shares at market price, with the normal 1% fee and price impact. Only whole shares are bought; any remainder stays in your trade stockpile. Purchases follow the exchange's normal rules, including foreign-ownership limits."
  go_drip_index:0 "Index Portfolio"
  go_drip_index_desc:0 "After each quarterly payout, all your dividends are pooled and invested towards a portfolio weighted like the Galactic Composite Index: each listed company in proportion to its market capitalisation. The money goes to the companies furthest below their index weight in your portfolio, up to six purchases a quarter. Nothing is ever sold, so the portfolio drifts towards the index over time. Whole shares only; companies the exchange will not sell to you (no contact, foreign-ownership limits) are skipped."
+ go_drip_desk:0 "Active Desk"
+ go_drip_desk_desc:0 "Once a quarter, a trading desk manages your shares against each company's fundamental value, as shown in the exchange terminal. It sells whole positions priced at or above 125% of fundamental value, or in financial distress, but never shares in your own empire's companies. It then buys the best-value listed companies priced at or below 85% of fundamental value, spending at most 15% of your trade above a 2,000 reserve, with no company above 25% of the portfolio. Dividends are taken as trade and feed its budget. Every trade pays the normal 1% fee and price impact."
  go_drip_active_name:0 "Dividend Reinvestment"
+ go_drip_desk_name:0 "Active Desk"
  go_drip_index_name:0 "Index Portfolio"

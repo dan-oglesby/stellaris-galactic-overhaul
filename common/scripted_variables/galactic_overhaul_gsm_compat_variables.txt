@@ -1,0 +1,11 @@
+# Galactic Stock Market compatibility - Active Desk rules (galactic_overhaul_gsm.1, option go_drip_desk).
+# Agreed with Dan 2026-10-10. Prices are compared with GSM's own per-share fundamental value
+# (gsm_fund), which GSM shows in its exchange terminal as "Fundamental value". Every trade pays
+# GSM's 1% fee plus price impact both ways (~2-3% a round trip), so the bands are wide on purpose.
+
+@go_dk_buy_ratio   = 0.85   # buy a listed company when price <= 85% of fundamental value
+@go_dk_sell_ratio  = 1.25   # sell a holding when price >= 125% of fundamental value (or in distress)
+@go_dk_spend_share = 0.15   # per review, spend at most 15% of the trade stockpile above the reserve
+@go_dk_reserve     = 2000   # trade the desk never touches
+@go_dk_cap_share   = 0.25   # no company above 25% of (portfolio value + this review's budget)
+@go_dk_max_buys    = 3      # purchases per review, best value first

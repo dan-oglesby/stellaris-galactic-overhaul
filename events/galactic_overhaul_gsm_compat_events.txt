@@ -8,6 +8,7 @@ namespace = galactic_overhaul_gsm
 #   go_drip_off    take them as trade (GSM's own behaviour; nothing runs here)
 #   go_drip_on     reinvest what each company paid in that same company   (flag go_drip_active)
 #   go_drip_index  reinvest all of it towards a market-cap-weighted portfolio (flag go_drip_index)
+#   go_drip_desk   quarterly value trading against fundamental value     (flag go_drip_desk)
 # Purchases go through GSM's own quote/buy API - the same path its AI uses
 # (gsm_ai_buy_within_budget) - so the 1 % fee, price impact, foreign-ownership limits, contact
 # rules and affordability all apply exactly as for a manual purchase. Nothing of GSM is overridden.
@@ -40,6 +41,7 @@ country_event = {
 		OR = {
 			has_policy_flag = go_drip_active
 			has_policy_flag = go_drip_index
+			has_policy_flag = go_drip_desk
 		}
 		has_global_flag = gsm_initialized
 		exists = event_target:gsm_exchange
@@ -189,6 +191,144 @@ country_event = {
 			}
 		}
 
+		# ---------------------------------------------------------------- active desk
+		# Value trading against GSM's fundamental value, once a quarter (rules and their reasons in
+		# galactic_overhaul_gsm_compat_variables.txt). Dividends stay as trade and feed the budget.
+		# 1) sell whole positions priced >= @go_dk_sell_ratio x fundamental, or in distress - never
+		#    a company of our own empire (control of domestic firms is not the desk's to sell);
+		# 2) buy the best-value listed companies at <= @go_dk_buy_ratio x fundamental, spending at
+		#    most @go_dk_spend_share of trade above @go_dk_reserve, no company above @go_dk_cap_share
+		#    of the portfolio.
+		else_if = {
+			limit = { has_policy_flag = go_drip_desk }
+			set_variable = { which = go_dk_sold_q value = 0 }
+			set_variable = { which = go_dk_sold_n value = 0 }
+			# pass 1: sells
+			every_country = {
+				limit = {
+					gsm_is_live_company = yes
+					check_variable = { which = gsm_shares value > 0 }
+					NOT = { check_variable = { which = gsm_home_iid value = event_target:go_drip_holder.gsm_iid } }
+				}
+				save_event_target_as = go_drip_co
+				if = {
+					limit = {
+						event_target:go_drip_holder = { has_country_flag = gsm_holds@event_target:go_drip_co }
+						OR = {
+							has_country_flag = gsm_distress
+							AND = {
+								check_variable = { which = gsm_fund value > 0 }
+								check_variable_arithmetic = {
+									which = gsm_price
+									divide = gsm_fund
+									value >= @go_dk_sell_ratio
+								}
+							}
+						}
+					}
+					save_event_target_as = gsm_t_tc
+					event_target:go_drip_holder = {
+						set_variable = { which = gsm_t_lotf value = 1 }   # the quote caps it at our holding
+						country_event = { id = galactic_overhaul_gsm.3 }
+					}
+				}
+			}
+			# pass 2: budget, portfolio value, and per-company value ratio / room under the cap
+			export_resource_stockpile_to_variable = { resource = trade variable = go_dk_stock }
+			set_variable = { which = go_dk_left value = go_dk_stock }
+			subtract_variable = { which = go_dk_left value = @go_dk_reserve }
+			multiply_variable = { which = go_dk_left value = @go_dk_spend_share }
+			set_variable = { which = go_dk_pv value = 0 }
+			every_country = {
+				limit = {
+					gsm_is_listed_company = yes
+					check_variable = { which = gsm_price value > 0 }
+					check_variable = { which = gsm_shares value > 0 }
+				}
+				save_event_target_as = go_drip_co
+				remove_country_flag = go_dk_tried
+				set_variable = { which = go_dk_val value = 0 }
+				if = {
+					limit = {
+						event_target:go_drip_holder = { has_country_flag = gsm_holds@event_target:go_drip_co }
+					}
+					set_variable = { which = gsm_t_iid value = event_target:go_drip_holder.gsm_iid }
+					gsm_gen_hold_get = yes
+					set_variable = { which = go_dk_val value = gsm_t_hold }
+					multiply_variable = { which = go_dk_val value = gsm_price }
+					event_target:go_drip_holder = {
+						change_variable = { which = go_dk_pv value = event_target:go_drip_co.go_dk_val }
+					}
+				}
+				# price / fundamental; 99 when there is no fundamental value (never a buy)
+				set_variable = { which = go_dk_ratio value = 99 }
+				if = {
+					limit = { check_variable = { which = gsm_fund value > 0 } }
+					set_variable = { which = go_dk_ratio value = gsm_price }
+					divide_variable = { which = go_dk_ratio value = gsm_fund }
+				}
+			}
+			if = {
+				limit = { check_variable = { which = go_dk_left value >= 1 } }
+				# cap per company = share x (portfolio + budget); room = cap - held value
+				set_variable = { which = go_dk_cap value = go_dk_pv }
+				change_variable = { which = go_dk_cap value = go_dk_left }
+				multiply_variable = { which = go_dk_cap value = @go_dk_cap_share }
+				every_country = {
+					limit = {
+						gsm_is_listed_company = yes
+						check_variable = { which = gsm_price value > 0 }
+						check_variable = { which = gsm_shares value > 0 }
+					}
+					set_variable = { which = go_dk_room value = event_target:go_drip_holder.go_dk_cap }
+					subtract_variable = { which = go_dk_room value = go_dk_val }
+				}
+				# pass 3: best value first (lowest price / fundamental), skipping refusals
+				while = {
+					count = @go_dk_max_buys
+					if = {
+						limit = { check_variable = { which = go_dk_left value >= 1 } }
+						ordered_country = {
+							limit = {
+								gsm_is_listed_company = yes
+								NOT = { has_country_flag = gsm_distress }
+								NOT = { has_country_flag = go_dk_tried }
+								check_variable = { which = go_dk_ratio value <= @go_dk_buy_ratio }
+								check_variable = { which = go_dk_room value >= 1 }
+							}
+							position = 0
+							order_by = go_dk_ratio
+							inverse = yes
+							set_country_flag = go_dk_tried
+							save_event_target_as = gsm_t_tc
+							save_event_target_as = go_drip_co
+							event_target:go_drip_holder = {
+								set_variable = { which = go_drip_budget value = go_dk_left }
+								if = {
+									limit = {
+										check_variable = { which = go_drip_budget value > event_target:go_drip_co.go_dk_room }
+									}
+									set_variable = { which = go_drip_budget value = event_target:go_drip_co.go_dk_room }
+								}
+								set_variable = { which = go_drip_before value = go_drip_spent_q }
+								country_event = { id = galactic_overhaul_gsm.2 }
+								subtract_variable = { which = go_dk_left value = go_drip_spent_q }
+								change_variable = { which = go_dk_left value = go_drip_before }
+							}
+						}
+					}
+				}
+			}
+			every_country = {
+				limit = { has_country_flag = go_dk_tried }
+				remove_country_flag = go_dk_tried
+			}
+			if = {
+				limit = { go_debug_on = yes }
+				log = "GALACTIC_OVERHAUL_GSM: [This.GetName] desk sold [This.go_dk_sold_n] shares for [This.go_dk_sold_q] trade"
+			}
+		}
+
 		if = {
 			limit = { check_variable = { which = go_drip_spent_q value > 0 } }
 			change_variable = { which = go_drip_total value = go_drip_spent_q }
@@ -244,6 +384,31 @@ country_event = {
 					change_variable = { which = go_drip_spent_q value = gsm_t_trade_cost }
 					change_variable = { which = go_drip_shares_q value = gsm_t_trade_q }
 				}
+			}
+		}
+	}
+}
+
+# ============================================================================
+# galactic_overhaul_gsm.3 - one sale (fired synchronously from .1, active desk).
+# Holder country scope; company in event_target:gsm_t_tc; lot fraction in gsm_t_lotf (1 = the whole
+# position: GSM's sell quote caps the quantity at the holding). Proceeds arrive as trade through
+# GSM's own sell (gsm_fn.11), which also books the realised profit or loss.
+# ============================================================================
+country_event = {
+	id = galactic_overhaul_gsm.3
+	hide_window = yes
+	is_triggered_only = yes
+
+	immediate = {
+		gsm_trade_quote_sell = yes
+		if = {
+			limit = { check_variable = { which = gsm_t_trade_q value >= 1 } }
+			gsm_trade_sell = yes
+			if = {
+				limit = { check_variable = { which = gsm_t_trade_ok value = 1 } }
+				change_variable = { which = go_dk_sold_q value = gsm_t_trade_cost }
+				change_variable = { which = go_dk_sold_n value = gsm_t_trade_q }
 			}
 		}
 	}

@@ -1,0 +1,37 @@
+# Galactic Overhaul - Galactic Stock Market compatibility: "Dividend Reinvestment" policy.
+# Only offered when the Galactic Stock Market mod (Workshop 3813910097) is running: it sets the
+# gsm_initialized global flag when its exchange is created. When on, the dividends each quarter
+# pays out on your shareholdings are spent buying more shares of the company that paid them
+# (galactic_overhaul_gsm.1). Without that mod the policy never appears and nothing runs.
+go_dividend_reinvestment = {
+	# 4.5 groups policies under collapsible category headers. Natural home plus the mod's own
+	# group, so every Galactic Overhaul toggle can be found in one place. Cosmetic; save-safe.
+	category = { economy galactic_overhaul }
+	potential = {
+		is_country_type = default
+		has_global_flag = gsm_initialized
+	}
+
+	allow = {
+		always = yes
+	}
+
+	option = {
+		name = "go_drip_off"
+		icon = "GFX_diplomatic_stance_withdrawn"
+		ai_weight = {
+			weight = 100
+		}
+	}
+
+	option = {
+		name = "go_drip_on"
+		icon = "GFX_diplomatic_stance_mercantile"
+		policy_flags = {
+			go_drip_active
+		}
+		ai_weight = {
+			weight = 0
+		}
+	}
+}

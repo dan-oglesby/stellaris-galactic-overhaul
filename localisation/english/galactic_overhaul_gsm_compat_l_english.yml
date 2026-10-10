@@ -1,0 +1,10 @@
+﻿l_english:
+ policy_go_dividend_reinvestment:0 "Dividend Reinvestment"
+ policy_go_dividend_reinvestment_desc:0 "Galactic Overhaul compatibility with Galactic Stock Market. Whether the dividends your shareholdings pay each quarter are taken as trade or reinvested in the companies that paid them."
+ go_dividend_reinvestment:0 "Dividend Reinvestment"
+ go_dividend_reinvestment_desc:0 "Reinvest Galactic Stock Market dividends in the paying companies."
+ go_drip_off:0 "Take Dividends as Trade"
+ go_drip_off_desc:0 "Dividends are paid into your trade stockpile, as Galactic Stock Market intends. No automation."
+ go_drip_on:0 "Reinvest Dividends"
+ go_drip_on_desc:0 "After each quarterly payout, what each company paid you is spent on more of its shares at market price, with the normal 1% fee and price impact. Only whole shares are bought; any remainder stays in your trade stockpile. Purchases follow the exchange's normal rules, including foreign-ownership limits."
+ go_drip_active_name:0 "Dividend Reinvestment"

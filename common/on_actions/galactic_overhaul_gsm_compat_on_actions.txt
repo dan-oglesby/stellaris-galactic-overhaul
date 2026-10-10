@@ -1,0 +1,7 @@
+# Galactic Stock Market compatibility: dividend reinvestment check (merges additively into the
+# monthly pulse). The event itself decides whether a payout has just happened.
+on_monthly_pulse_country = {
+	events = {
+		galactic_overhaul_gsm.1
+	}
+}

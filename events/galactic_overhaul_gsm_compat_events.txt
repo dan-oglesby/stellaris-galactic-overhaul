@@ -329,6 +329,11 @@ country_event = {
 			}
 		}
 
+		# start the lifetime total at 0 so the log never prints an empty value
+		if = {
+			limit = { NOT = { is_variable_set = go_drip_total } }
+			set_variable = { which = go_drip_total value = 0 }
+		}
 		if = {
 			limit = { check_variable = { which = go_drip_spent_q value > 0 } }
 			change_variable = { which = go_drip_total value = go_drip_spent_q }

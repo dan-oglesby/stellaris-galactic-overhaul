@@ -8,5 +8,9 @@
  go_bo_off_desc:0 "You open branch offices and build their holdings by hand. No automation."
  go_bo_on:0 "Corporate Expansion Division"
  go_bo_on_desc:0 "A dedicated division opens branch offices on qualifying colonies and fills them with the most beneficial holdings each month. It prioritises holdings boosted by your government civics (extra capital Trader jobs), then your empire's resource shortfalls, then trade. Pays the real influence + mineral costs and is rate-limited per month."
+ go_bo_crime_hostile:0 "Strike Our Enemies"
+ go_bo_crime_hostile_desc:0 "Criminal Syndicate only. The division keeps building holdings on every office you already run, but opens new criminal branch offices only on worlds of empires hostile to you: a declared rivalry either way, a hostile or rival attitude towards you, or a negative opinion of you."
+ go_bo_crime_holdings:0 "Consolidate the Syndicate"
+ go_bo_crime_holdings_desc:0 "Criminal Syndicate only. The division never opens new branch offices; it only builds holdings on the offices you already run. Expand by hand where you choose."
 
  go_branch_active_name:0 "Branch Office Automation"

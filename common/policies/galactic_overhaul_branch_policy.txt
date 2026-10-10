@@ -39,4 +39,38 @@ branch_office_automation = {
 			weight = 0
 		}
 	}
+
+	# Criminal Syndicates only (Dan, 2026-10-10): a crime corp needs no commercial pact, so plain
+	# "on" spreads criminal offices to every eligible empire. These two keep the automation but limit
+	# where it EXPANDS; holdings on offices you already have are built either way
+	# (go_bo_colony_qualifies / go_bo_host_hostile in galactic_overhaul_branch_triggers.txt).
+	option = {
+		name = "go_bo_crime_hostile"
+		icon = "GFX_diplomatic_stance_belligerent"
+		potential = {
+			is_criminal_syndicate = yes
+		}
+		policy_flags = {
+			go_branch_active
+			go_bo_hostile_only
+		}
+		ai_weight = {
+			weight = 0
+		}
+	}
+
+	option = {
+		name = "go_bo_crime_holdings"
+		icon = "GFX_diplomatic_stance_isolationist"
+		potential = {
+			is_criminal_syndicate = yes
+		}
+		policy_flags = {
+			go_branch_active
+			go_bo_no_new
+		}
+		ai_weight = {
+			weight = 0
+		}
+	}
 }

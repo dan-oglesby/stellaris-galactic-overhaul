@@ -75,4 +75,31 @@ go_bo_colony_qualifies = {
 			NOT = { has_carrier_flag = criminal_branch_closed_cooldown_planet@root }
 		}
 	}
+
+	# CRIMINAL EXPANSION SETTING (Dan, 2026-10-10). A Criminal Syndicate may pick how far the sweep
+	# expands its syndicate: go_bo_no_new = never open new offices (holdings are still built on the
+	# offices it already has); go_bo_hostile_only = open only on worlds of empires hostile to it.
+	# Only the OPENING step calls this trigger, so holdings on existing offices are unaffected.
+	NOT = { root = { has_policy_flag = go_bo_no_new } }
+	OR = {
+		NOT = { root = { has_policy_flag = go_bo_hostile_only } }
+		AND = {
+			exists = owner
+			owner = { go_bo_host_hostile = yes }
+		}
+	}
+}
+
+# COUNTRY scope (this = a host empire; root = the megacorp). "Hostile" for the criminal
+# hostile-only setting: any one of a declared rivalry (either way), a hostile or rival AI attitude
+# towards us, or a negative opinion of us. (Open war is excluded already: the game forbids
+# criminal offices on empires at war or in truce with us - see go_bo_colony_qualifies.)
+go_bo_host_hostile = {
+	OR = {
+		has_rival = root
+		root = { has_rival = prev }
+		is_hostile_to = root
+		is_rival = root
+		opinion = { who = root value < 0 }
+	}
 }

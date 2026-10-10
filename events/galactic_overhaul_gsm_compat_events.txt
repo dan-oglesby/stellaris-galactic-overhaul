@@ -3,14 +3,16 @@ namespace = galactic_overhaul_gsm
 # ============================================================================
 # Galactic Stock Market compatibility (Workshop 3813910097, "Galactic Stock Market" v1.0.0).
 #
-# galactic_overhaul_gsm.1 - Dividend reinvestment (on_monthly_pulse_country).
-# Galactic Stock Market pays dividends quarterly, as trade, to every empire holding shares
-# (gsm_company_pay_dividend). With the Dividend Reinvestment policy on, this event spends what
-# each company just paid you on more shares of that same company, through the mod's own
-# quote/buy API - the same path its AI uses (gsm_ai_buy_within_budget) - so fees, price impact,
-# foreign-ownership limits and affordability all apply exactly as for a manual purchase.
+# Policy go_dividend_reinvestment decides what happens to the dividends Galactic Stock Market
+# pays quarterly, as trade, to every empire holding shares (gsm_company_pay_dividend):
+#   go_drip_off    take them as trade (GSM's own behaviour; nothing runs here)
+#   go_drip_on     reinvest what each company paid in that same company   (flag go_drip_active)
+#   go_drip_index  reinvest all of it towards a market-cap-weighted portfolio (flag go_drip_index)
+# Purchases go through GSM's own quote/buy API - the same path its AI uses
+# (gsm_ai_buy_within_budget) - so the 1 % fee, price impact, foreign-ownership limits, contact
+# rules and affordability all apply exactly as for a manual purchase. Nothing of GSM is overridden.
 #
-# Design notes (read against GSM's files; nothing of GSM's is overridden):
+# Design notes (read against GSM's files):
 # - Timing. GSM runs its whole market once a month from on_monthly_pulse (gsm_core.100) and
 #   leaves event_target:gsm_exchange.gsm_t_qend = 1 after a quarter-end tick until the next tick.
 #   The order of GSM's pulse and this one is not guaranteed, but either way exactly one of our
@@ -20,9 +22,10 @@ namespace = galactic_overhaul_gsm
 #   regular + special dividend per share, so holding * gsm_div_ps is the payout. GSM notes that
 #   script variables truncate to 5 decimals, so for companies with very many shares this can read
 #   slightly low - reinvestment errs on the side of spending less than was paid, never more.
-# - Whole shares only (GSM has no fractional shares). Anything that does not buy a whole share
-#   stays in your trade stockpile.
-# - Shares bought here are bought between ticks; GSM's next tick prices them like any trade.
+# - Whole shares only (GSM has no fractional shares). What does not buy a whole share stays in
+#   the trade stockpile.
+# - Nesting. The purchase itself runs in galactic_overhaul_gsm.2, fired synchronously, which GSM
+#   uses as a "fresh nesting root" for the same reason: its quote effect nests deeply.
 # Debug tag: GALACTIC_OVERHAUL_GSM.
 # ============================================================================
 country_event = {
@@ -31,10 +34,13 @@ country_event = {
 	is_triggered_only = yes
 
 	trigger = {
-		# PERF: the policy's "on" option has ai_weight = 0, so AI empires never hold the flag;
+		# PERF: every reinvesting option has ai_weight = 0, so AI empires never hold these flags;
 		# is_ai short-circuits the pulse for them.
 		is_ai = no
-		has_policy_flag = go_drip_active
+		OR = {
+			has_policy_flag = go_drip_active
+			has_policy_flag = go_drip_index
+		}
 		has_global_flag = gsm_initialized
 		exists = event_target:gsm_exchange
 		event_target:gsm_exchange = {
@@ -52,62 +58,134 @@ country_event = {
 		set_variable = { which = go_drip_shares_q value = 0 }
 		save_event_target_as = go_drip_holder
 
-		every_country = {
-			limit = {
-				is_country_type = gsm_company
-				check_variable = { which = gsm_div_ps value > 0 }
-				check_variable = { which = gsm_price value > 0 }
-				check_variable = { which = gsm_shares value > 0 }
+		# ---------------------------------------------------------------- reinvest in payer
+		if = {
+			limit = { has_policy_flag = go_drip_active }
+			every_country = {
+				limit = {
+					is_country_type = gsm_company
+					check_variable = { which = gsm_div_ps value > 0 }
+					check_variable = { which = gsm_price value > 0 }
+					check_variable = { which = gsm_shares value > 0 }
+				}
+				save_event_target_as = go_drip_co
+				if = {
+					limit = {
+						event_target:go_drip_holder = { has_country_flag = gsm_holds@event_target:go_drip_co }
+					}
+					# this holder's position in the company (GSM's generated per-investor store)
+					set_variable = { which = gsm_t_iid value = event_target:go_drip_holder.gsm_iid }
+					gsm_gen_hold_get = yes
+					save_event_target_as = gsm_t_tc
+					event_target:go_drip_holder = {
+						# budget = holding x dividend per share = what this company just paid us
+						set_variable = { which = go_drip_budget value = event_target:go_drip_co.gsm_t_hold }
+						multiply_variable = { which = go_drip_budget value = event_target:go_drip_co.gsm_div_ps }
+						country_event = { id = galactic_overhaul_gsm.2 }
+					}
+				}
 			}
-			save_event_target_as = go_drip_co
+		}
+
+		# ---------------------------------------------------------------- index portfolio
+		# Target: each listed company held in proportion to its market cap (the weighting of GSM's
+		# Galactic Composite Index). New money only - nothing is sold - so each quarter the whole
+		# payout goes to the companies furthest BELOW their index weight, largest gap first.
+		else_if = {
+			limit = { has_policy_flag = go_drip_index }
+			set_variable = { which = go_drip_budget value = 0 }
+			set_variable = { which = go_ix_pv value = 0 }
+			set_variable = { which = go_ix_mt value = 0 }
+			# pass 1: total payout, current portfolio value, and total market cap
+			every_country = {
+				limit = {
+					gsm_is_listed_company = yes
+					check_variable = { which = gsm_price value > 0 }
+					check_variable = { which = gsm_shares value > 0 }
+				}
+				save_event_target_as = go_drip_co
+				remove_country_flag = go_ix_tried
+				set_variable = { which = go_ix_val value = 0 }
+				if = {
+					limit = {
+						event_target:go_drip_holder = { has_country_flag = gsm_holds@event_target:go_drip_co }
+					}
+					set_variable = { which = gsm_t_iid value = event_target:go_drip_holder.gsm_iid }
+					gsm_gen_hold_get = yes
+					set_variable = { which = go_ix_val value = gsm_t_hold }
+					multiply_variable = { which = go_ix_val value = gsm_price }
+					event_target:go_drip_holder = {
+						change_variable = { which = go_ix_pv value = event_target:go_drip_co.go_ix_val }
+						if = {
+							limit = { event_target:go_drip_co = { check_variable = { which = gsm_div_ps value > 0 } } }
+							set_variable = { which = go_ix_pay value = event_target:go_drip_co.gsm_t_hold }
+							multiply_variable = { which = go_ix_pay value = event_target:go_drip_co.gsm_div_ps }
+							change_variable = { which = go_drip_budget value = go_ix_pay }
+						}
+					}
+				}
+				event_target:go_drip_holder = {
+					change_variable = { which = go_ix_mt value = event_target:go_drip_co.gsm_mcap_k }
+				}
+			}
+			# pass 2: gap = target value - held value, target = mcap share x (portfolio + payout)
 			if = {
 				limit = {
-					event_target:go_drip_holder = { has_country_flag = gsm_holds@event_target:go_drip_co }
+					check_variable = { which = go_drip_budget value >= 1 }
+					check_variable = { which = go_ix_mt value > 0 }
 				}
-				# this holder's position in the company (GSM's generated per-investor store)
-				set_variable = { which = gsm_t_iid value = event_target:go_drip_holder.gsm_iid }
-				gsm_gen_hold_get = yes
-				event_target:go_drip_holder = {
-					# budget = holding x dividend per share = what this company just paid us
-					set_variable = { which = go_drip_budget value = event_target:go_drip_co.gsm_t_hold }
-					multiply_variable = { which = go_drip_budget value = event_target:go_drip_co.gsm_div_ps }
-					# estimated whole shares at price + 1 % fee; skip if not even one
-					set_variable = { which = go_drip_est value = go_drip_budget }
-					divide_variable = { which = go_drip_est value = event_target:go_drip_co.gsm_price }
-					divide_variable = { which = go_drip_est value = 1.01 }
+				set_variable = { which = go_ix_v value = go_ix_pv }
+				change_variable = { which = go_ix_v value = go_drip_budget }
+				every_country = {
+					limit = {
+						gsm_is_listed_company = yes
+						check_variable = { which = gsm_price value > 0 }
+						check_variable = { which = gsm_shares value > 0 }
+					}
+					set_variable = { which = go_ix_gap value = gsm_mcap_k }
+					divide_variable = { which = go_ix_gap value = event_target:go_drip_holder.go_ix_mt }
+					multiply_variable = { which = go_ix_gap value = event_target:go_drip_holder.go_ix_v }
+					subtract_variable = { which = go_ix_gap value = go_ix_val }
+				}
+				# pass 3: up to six purchases, each into the most underweight company not yet tried
+				# (a company the exchange will not sell to us - no contact, foreign cap - is skipped)
+				set_variable = { which = go_ix_left value = go_drip_budget }
+				while = {
+					count = 6
 					if = {
-						limit = { check_variable = { which = go_drip_est value >= 1 } }
-						event_target:go_drip_co = { save_event_target_as = gsm_t_tc }
-						# GSM sizes a buy as a fraction of all shares (gsm_t_lotf)
-						set_variable = { which = gsm_t_lotf value = go_drip_est }
-						divide_variable = { which = gsm_t_lotf value = event_target:go_drip_co.gsm_shares }
-						gsm_trade_quote_buy = yes
-						# price impact can push the quote over budget: shrink the lot once and requote
-						if = {
+						limit = { check_variable = { which = go_ix_left value >= 1 } }
+						ordered_country = {
 							limit = {
-								check_variable = { which = gsm_t_trade_q value > 1 }
-								check_variable = { which = gsm_t_trade_cost value > go_drip_budget }
+								gsm_is_listed_company = yes
+								check_variable = { which = go_ix_gap value > 0 }
+								NOT = { has_country_flag = go_ix_tried }
 							}
-							set_variable = { which = go_drip_scale value = go_drip_budget }
-							divide_variable = { which = go_drip_scale value = gsm_t_trade_cost }
-							multiply_variable = { which = go_drip_scale value = 0.99 }
-							multiply_variable = { which = gsm_t_lotf value = go_drip_scale }
-							gsm_trade_quote_buy = yes
-						}
-						if = {
-							limit = {
-								check_variable = { which = gsm_t_trade_q value >= 1 }
-								check_variable = { which = gsm_t_trade_cost value <= go_drip_budget }
-							}
-							gsm_trade_buy = yes
-							if = {
-								limit = { check_variable = { which = gsm_t_trade_ok value = 1 } }
-								change_variable = { which = go_drip_spent_q value = gsm_t_trade_cost }
-								change_variable = { which = go_drip_shares_q value = gsm_t_trade_q }
+							position = 0
+							order_by = go_ix_gap
+							set_country_flag = go_ix_tried
+							save_event_target_as = gsm_t_tc
+							save_event_target_as = go_drip_co
+							event_target:go_drip_holder = {
+								# spend min(gap, what is left of the payout)
+								set_variable = { which = go_drip_budget value = go_ix_left }
+								if = {
+									limit = {
+										check_variable = { which = go_drip_budget value > event_target:go_drip_co.go_ix_gap }
+									}
+									set_variable = { which = go_drip_budget value = event_target:go_drip_co.go_ix_gap }
+								}
+								set_variable = { which = go_drip_before value = go_drip_spent_q }
+								country_event = { id = galactic_overhaul_gsm.2 }
+								subtract_variable = { which = go_ix_left value = go_drip_spent_q }
+								change_variable = { which = go_ix_left value = go_drip_before }
 							}
 						}
 					}
 				}
+			}
+			every_country = {
+				limit = { has_country_flag = go_ix_tried }
+				remove_country_flag = go_ix_tried
 			}
 		}
 
@@ -118,6 +196,55 @@ country_event = {
 		if = {
 			limit = { go_debug_on = yes }
 			log = "GALACTIC_OVERHAUL_GSM: [This.GetName] reinvested [This.go_drip_spent_q] trade in [This.go_drip_shares_q] shares (lifetime [This.go_drip_total])"
+		}
+	}
+}
+
+# ============================================================================
+# galactic_overhaul_gsm.2 - one budgeted purchase (fired synchronously from .1).
+# Holder country scope; company in event_target:gsm_t_tc (also event_target:go_drip_co); spends at
+# most go_drip_budget trade. Adds what it spent to go_drip_spent_q / go_drip_shares_q.
+# ============================================================================
+country_event = {
+	id = galactic_overhaul_gsm.2
+	hide_window = yes
+	is_triggered_only = yes
+
+	immediate = {
+		# estimated whole shares at price + 1 % fee; nothing to do below one share
+		set_variable = { which = go_drip_est value = go_drip_budget }
+		divide_variable = { which = go_drip_est value = event_target:gsm_t_tc.gsm_price }
+		divide_variable = { which = go_drip_est value = 1.01 }
+		if = {
+			limit = { check_variable = { which = go_drip_est value >= 1 } }
+			# GSM sizes a buy as a fraction of all shares (gsm_t_lotf)
+			set_variable = { which = gsm_t_lotf value = go_drip_est }
+			divide_variable = { which = gsm_t_lotf value = event_target:gsm_t_tc.gsm_shares }
+			gsm_trade_quote_buy = yes
+			# price impact can push the quote over budget: shrink the lot once and requote
+			if = {
+				limit = {
+					check_variable = { which = gsm_t_trade_q value > 1 }
+					check_variable = { which = gsm_t_trade_cost value > go_drip_budget }
+				}
+				set_variable = { which = go_drip_scale value = go_drip_budget }
+				divide_variable = { which = go_drip_scale value = gsm_t_trade_cost }
+				multiply_variable = { which = go_drip_scale value = 0.99 }
+				multiply_variable = { which = gsm_t_lotf value = go_drip_scale }
+				gsm_trade_quote_buy = yes
+			}
+			if = {
+				limit = {
+					check_variable = { which = gsm_t_trade_q value >= 1 }
+					check_variable = { which = gsm_t_trade_cost value <= go_drip_budget }
+				}
+				gsm_trade_buy = yes
+				if = {
+					limit = { check_variable = { which = gsm_t_trade_ok value = 1 } }
+					change_variable = { which = go_drip_spent_q value = gsm_t_trade_cost }
+					change_variable = { which = go_drip_shares_q value = gsm_t_trade_q }
+				}
+			}
 		}
 	}
 }

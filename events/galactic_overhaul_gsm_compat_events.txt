@@ -192,18 +192,72 @@ country_event = {
 		}
 
 		# ---------------------------------------------------------------- active desk
-		# Value trading against GSM's fundamental value, once a quarter (rules and their reasons in
-		# galactic_overhaul_gsm_compat_variables.txt). Dividends stay as trade and feed the budget.
-		# 1) sell whole positions priced >= @go_dk_sell_ratio x fundamental, or in distress - never
-		#    a company of our own empire (control of domestic firms is not the desk's to sell);
-		# 2) buy the best-value listed companies at <= @go_dk_buy_ratio x fundamental, spending at
-		#    most @go_dk_spend_share of trade above @go_dk_reserve, no company above @go_dk_cap_share
-		#    of the portfolio.
+		# Expected-value trading, once a quarter (Dan, 2026-10-10: "any trade where the expected value
+		# beats costs, filling from high to low value"). The model is GSM's own price rule, using only
+		# figures GSM shows its players (target price, trailing dividends) and its own constants:
+		#   - each month a price closes @gsm_price_lambda of the gap to its target price, so over a
+		#     quarter it closes conv = 1 - (1 - lambda)^3 of it (0.657 at lambda 0.3);
+		#   - a quarter's dividend is about a quarter of the trailing twelve months' (gsm_div_ttm);
+		#   - every trade pays @gsm_trade_fee, and moving a fraction f of a company's shares moves its
+		#     price by @gsm_impact_k x f (the trade itself executes at half of that move).
+		# Expected quarterly return of holding a share, as a fraction of its price:
+		#   h = conv x (target / price - 1) + (dividends ttm / 4) / price
+		# Buying a fraction f of the company and assuming the position is sold again after one quarter
+		# (the conservative case) works out to an expected profit, per share, of
+		#   edge - k x conv x f,   with  edge = h - 2 x fee
+		# so a buy is worth making when edge > 0, and the most worth buying is f = edge / (2 k conv),
+		# where the extra price impact cancels the edge. Companies are filled best edge first.
+		# Selling a held position now instead of holding it a quarter is worth it when
+		#   -h - fee > 0   (the expected loss exceeds the exit fee), up to f = (-h - fee) / k.
+		# Unchanged rules: distressed holdings are always sold; companies of our own empire are never
+		# sold; budget @go_dk_spend_share of trade above @go_dk_reserve; no company above
+		# @go_dk_cap_share of the portfolio. Dividends stay as trade and feed the budget.
 		else_if = {
 			limit = { has_policy_flag = go_drip_desk }
 			set_variable = { which = go_dk_sold_q value = 0 }
 			set_variable = { which = go_dk_sold_n value = 0 }
-			# pass 1: sells
+			set_variable = { which = go_dk_buys value = 0 }
+			# model constants, from GSM's own settings
+			set_variable = { which = go_dk_pw value = 1 }
+			subtract_variable = { which = go_dk_pw value = @gsm_price_lambda }
+			set_variable = { which = go_dk_conv value = go_dk_pw }
+			multiply_variable = { which = go_dk_conv value = go_dk_pw }
+			multiply_variable = { which = go_dk_conv value = go_dk_pw }
+			multiply_variable = { which = go_dk_conv value = -1 }
+			change_variable = { which = go_dk_conv value = 1 }
+			set_variable = { which = go_dk_fee2 value = @gsm_trade_fee }
+			multiply_variable = { which = go_dk_fee2 value = 2 }
+			set_variable = { which = go_dk_kc2 value = @gsm_impact_k }
+			multiply_variable = { which = go_dk_kc2 value = go_dk_conv }
+			multiply_variable = { which = go_dk_kc2 value = 2 }
+
+			# pass 1: expected quarterly return h for every listed company with a target price
+			every_country = {
+				limit = {
+					gsm_is_live_company = yes
+					check_variable = { which = gsm_price value > 0 }
+					check_variable = { which = gsm_shares value > 0 }
+				}
+				set_variable = { which = go_dk_ok value = 0 }
+				if = {
+					limit = { check_variable = { which = gsm_target value > 0 } }
+					set_variable = { which = go_dk_ok value = 1 }
+					set_variable = { which = go_dk_h value = gsm_target }
+					divide_variable = { which = go_dk_h value = gsm_price }
+					change_variable = { which = go_dk_h value = -1 }
+					multiply_variable = { which = go_dk_h value = event_target:go_drip_holder.go_dk_conv }
+					set_variable = { which = go_dk_y value = 0 }
+					if = {
+						limit = { check_variable = { which = gsm_div_ttm value > 0 } }
+						set_variable = { which = go_dk_y value = gsm_div_ttm }
+						divide_variable = { which = go_dk_y value = 4 }
+						divide_variable = { which = go_dk_y value = gsm_price }
+					}
+					change_variable = { which = go_dk_h value = go_dk_y }
+				}
+			}
+
+			# pass 2: sells - distressed, or expected to lose more than the exit fee (never our own)
 			every_country = {
 				limit = {
 					gsm_is_live_company = yes
@@ -217,23 +271,32 @@ country_event = {
 						OR = {
 							has_country_flag = gsm_distress
 							AND = {
-								check_variable = { which = gsm_fund value > 0 }
+								check_variable = { which = go_dk_ok value = 1 }
 								check_variable_arithmetic = {
-									which = gsm_price
-									divide = gsm_fund
-									value >= @go_dk_sell_ratio
+									which = go_dk_h
+									add = @gsm_trade_fee
+									value < 0
 								}
 							}
 						}
 					}
 					save_event_target_as = gsm_t_tc
 					event_target:go_drip_holder = {
-						set_variable = { which = gsm_t_lotf value = 1 }   # the quote caps it at our holding
-						country_event = { id = galactic_overhaul_gsm.3 }
+						# fraction of the company to sell: everything when distressed, else (-h - fee) / k
+						set_variable = { which = gsm_t_lotf value = 1 }
+						if = {
+							limit = { NOT = { event_target:go_drip_co = { has_country_flag = gsm_distress } } }
+							set_variable = { which = gsm_t_lotf value = event_target:go_drip_co.go_dk_h }
+							change_variable = { which = gsm_t_lotf value = @gsm_trade_fee }
+							multiply_variable = { which = gsm_t_lotf value = -1 }
+							divide_variable = { which = gsm_t_lotf value = @gsm_impact_k }
+						}
+						country_event = { id = galactic_overhaul_gsm.3 }   # GSM's quote caps it at our holding
 					}
 				}
 			}
-			# pass 2: budget, portfolio value, and per-company value ratio / room under the cap
+
+			# pass 3: budget, portfolio value, and per company: buy edge, size worth buying, room
 			export_resource_stockpile_to_variable = { resource = trade variable = go_dk_stock }
 			set_variable = { which = go_dk_left value = go_dk_stock }
 			subtract_variable = { which = go_dk_left value = @go_dk_reserve }
@@ -260,12 +323,27 @@ country_event = {
 						change_variable = { which = go_dk_pv value = event_target:go_drip_co.go_dk_val }
 					}
 				}
-				# price / fundamental; 99 when there is no fundamental value (never a buy)
-				set_variable = { which = go_dk_ratio value = 99 }
+				# edge = h - 2 x fee (-1 when there is no target price: never a buy)
+				set_variable = { which = go_dk_e value = -1 }
+				set_variable = { which = go_dk_want value = 0 }
 				if = {
-					limit = { check_variable = { which = gsm_fund value > 0 } }
-					set_variable = { which = go_dk_ratio value = gsm_price }
-					divide_variable = { which = go_dk_ratio value = gsm_fund }
+					limit = { check_variable = { which = go_dk_ok value = 1 } }
+					set_variable = { which = go_dk_e value = go_dk_h }
+					subtract_variable = { which = go_dk_e value = event_target:go_drip_holder.go_dk_fee2 }
+					if = {
+						limit = { check_variable = { which = go_dk_e value > 0 } }
+						# f = edge / (2 k conv), at most @go_dk_max_lot of the company; spend = f x shares x price x (1 + fee)
+						set_variable = { which = go_dk_f value = go_dk_e }
+						divide_variable = { which = go_dk_f value = event_target:go_drip_holder.go_dk_kc2 }
+						if = {
+							limit = { check_variable = { which = go_dk_f value > @go_dk_max_lot } }
+							set_variable = { which = go_dk_f value = @go_dk_max_lot }
+						}
+						set_variable = { which = go_dk_want value = go_dk_f }
+						multiply_variable = { which = go_dk_want value = gsm_shares }
+						multiply_variable = { which = go_dk_want value = gsm_price }
+						multiply_variable = { which = go_dk_want value = 1.01 }
+					}
 				}
 			}
 			if = {
@@ -283,7 +361,7 @@ country_event = {
 					set_variable = { which = go_dk_room value = event_target:go_drip_holder.go_dk_cap }
 					subtract_variable = { which = go_dk_room value = go_dk_val }
 				}
-				# pass 3: best value first (lowest price / fundamental), skipping refusals
+				# pass 4: fill best edge first; skip companies the exchange will not sell to us
 				while = {
 					count = @go_dk_max_buys
 					if = {
@@ -293,27 +371,34 @@ country_event = {
 								gsm_is_listed_company = yes
 								NOT = { has_country_flag = gsm_distress }
 								NOT = { has_country_flag = go_dk_tried }
-								check_variable = { which = go_dk_ratio value <= @go_dk_buy_ratio }
+								check_variable = { which = go_dk_e value > 0 }
+								check_variable = { which = go_dk_want value >= 1 }
 								check_variable = { which = go_dk_room value >= 1 }
 							}
 							position = 0
-							order_by = go_dk_ratio
-							inverse = yes
+							order_by = go_dk_e
 							set_country_flag = go_dk_tried
 							save_event_target_as = gsm_t_tc
 							save_event_target_as = go_drip_co
 							event_target:go_drip_holder = {
+								# spend min(what is left, room under the cap, the size worth buying)
 								set_variable = { which = go_drip_budget value = go_dk_left }
 								if = {
-									limit = {
-										check_variable = { which = go_drip_budget value > event_target:go_drip_co.go_dk_room }
-									}
+									limit = { check_variable = { which = go_drip_budget value > event_target:go_drip_co.go_dk_room } }
 									set_variable = { which = go_drip_budget value = event_target:go_drip_co.go_dk_room }
+								}
+								if = {
+									limit = { check_variable = { which = go_drip_budget value > event_target:go_drip_co.go_dk_want } }
+									set_variable = { which = go_drip_budget value = event_target:go_drip_co.go_dk_want }
 								}
 								set_variable = { which = go_drip_before value = go_drip_spent_q }
 								country_event = { id = galactic_overhaul_gsm.2 }
 								subtract_variable = { which = go_dk_left value = go_drip_spent_q }
 								change_variable = { which = go_dk_left value = go_drip_before }
+								if = {
+									limit = { check_variable = { which = go_drip_spent_q value > go_drip_before } }
+									change_variable = { which = go_dk_buys value = 1 }
+								}
 							}
 						}
 					}
@@ -325,7 +410,7 @@ country_event = {
 			}
 			if = {
 				limit = { go_debug_on = yes }
-				log = "GALACTIC_OVERHAUL_GSM: [This.GetName] desk sold [This.go_dk_sold_n] shares for [This.go_dk_sold_q] trade"
+				log = "GALACTIC_OVERHAUL_GSM: [This.GetName] desk sold [This.go_dk_sold_n] shares for [This.go_dk_sold_q] trade; bought into [This.go_dk_buys] companies (budget [This.go_dk_left] left)"
 			}
 		}
 
